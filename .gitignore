@@ -1,0 +1,10 @@
+*
+!.gitignore
+
+!README*
+!*.md
+!LICENSE
+!/src/
+!/src/*.cr
+!/examples/
+!/examples/*.cr
