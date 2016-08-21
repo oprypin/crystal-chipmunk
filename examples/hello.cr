@@ -20,10 +20,6 @@ ball_body.position = CP.v(0, 15)
 ball_shape = space.add(CP::CircleShape.new(ball_body, radius, CP.v(0, 0)))
 ball_shape.friction = 0.7
 
-ball_body.each_shape do |shape|
-  p shape
-end
-
 time_step = 1.0/60.0
 time = 0.0
 while time < 2

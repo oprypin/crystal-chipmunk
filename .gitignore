@@ -5,6 +5,7 @@
 !*.md
 !LICENSE
 !/src/
-!/src/*.cr
+!/src/chipmunk/
+!/src/*/*.cr
 !/examples/
 !/examples/*.cr

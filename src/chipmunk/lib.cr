@@ -1,3 +1,5 @@
+require "./structs"
+
 @[Link("chipmunk")]
 lib LibCP
   fun message = cpMessage(condition : UInt8*, file : UInt8*, line : Int32, is_error : Int32, is_hard_error : Int32, message : UInt8*, ...)
