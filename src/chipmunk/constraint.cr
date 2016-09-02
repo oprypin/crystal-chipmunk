@@ -1,10 +1,31 @@
+# Copyright (c) 2016 Oleh Prypin <oleh@pryp.in>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+
 module CP
   abstract class Constraint
-    @@pre_solve : (LibCP::Constraint*, LibCP::Space*)-> =
+    @@pre_solve : LibCP::ConstraintPreSolveFunc =
     ->(constraint : LibCP::Constraint*, space : LibCP::Space*) {
       Constraint.from(constraint).pre_solve(Space.from(space))
     }
-    @@post_solve : (LibCP::Constraint*, LibCP::Space*)-> =
+    @@post_solve : LibCP::ConstraintPostSolveFunc =
     ->(constraint : LibCP::Constraint*, space : LibCP::Space*) {
       Constraint.from(constraint).post_solve(Space.from(space))
     }
@@ -38,7 +59,7 @@ module CP
     def max_force : Float64
       LibCP.constraint_get_max_force(self)
     end
-    def max_force=(max_force : Float64)
+    def max_force=(max_force : Number)
       LibCP.constraint_set_max_force(self, max_force)
     end
 
@@ -317,7 +338,7 @@ module CP
   end
 
   class DampedSpring < Constraint
-    @@spring_force : (LibCP::Constraint*, Float64)->Float64 =
+    @@spring_force : LibCP::DampedSpringForceFunc =
     ->(constraint : LibCP::Constraint*, dist : Float64) {
       DampedSpring.from(constraint).spring_force(dist).to_f
     }

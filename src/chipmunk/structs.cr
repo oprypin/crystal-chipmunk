@@ -1,3 +1,25 @@
+# Copyright (c) 2013 Scott Lembcke and Howling Moon Software
+# Copyright (c) 2016 Oleh Prypin <oleh@pryp.in>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+
 module CP
   extend self
 
@@ -51,7 +73,7 @@ module CP
     end
 
     def project(v2 : Vect) : Vect
-      vmult(v2, dot(v2) / v2.dot(v2))
+      v2 * (dot v2) / (v2.dot v2)
     end
 
     def to_angle() : Float64
@@ -171,11 +193,11 @@ module CP
       )
     end
 
-    def transform(p : Vect) : Vect
+    def transform_point(p : Vect) : Vect
       Vect.new(@a*p.x + @c*p.y + @tx, @b*p.x + @d*p.y + @ty)
     end
 
-    def transform(v : Vect) : Vect
+    def transform_vect(v : Vect) : Vect
       Vect.new((@a * v.x) + (@c * v.y), (@b * v.x) + (@d * v.y))
     end
 
@@ -398,11 +420,24 @@ module CP
 
   @[Extern]
   struct ShapeFilter
-    property group : LibCP::Group
-    property categories : LibCP::Bitmask
-    property mask : LibCP::Bitmask
+    property group : Group
+    property categories : Bitmask
+    property mask : Bitmask
 
-    def initialize(@group : LibCP::Group, @categories : LibCP::Bitmask, @mask : LibCP::Bitmask)
+    def initialize(group : Int, @categories : Bitmask, @mask : Bitmask)
+      @group = Group.new(group)
     end
   end
+
+  alias CollisionID = UInt32
+  alias CollisionType = LibC::SizeT
+  alias Group = LibC::SizeT
+  alias Bitmask = UInt32
+  alias Timestamp = UInt32
+
+  NO_GROUP = Group.new(0)
+  ALL_CATEGORIES = ~Bitmask.new(0)
+  WILDCARD_COLLISION_TYPE = ~CollisionType.new(0)
+  SHAPE_FILTER_ALL = {NO_GROUP, ALL_CATEGORIES, ALL_CATEGORIES}
+  SHAPE_FILTER_NONE = {NO_GROUP, ~ALL_CATEGORIES, ~ALL_CATEGORIES}
 end

@@ -1,3 +1,24 @@
+# Copyright (c) 2013 Scott Lembcke and Howling Moon Software
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+
 require "./structs"
 
 @[Link("chipmunk")]
@@ -6,23 +27,7 @@ lib LibCP
 
   alias HashValue = LibC::SizeT
 
-  alias CollisionID = UInt32
-
   alias DataPointer = Void*
-
-  alias CollisionType = LibC::SizeT
-
-  alias Group = LibC::SizeT
-
-  alias Bitmask = UInt32
-
-  alias Timestamp = UInt32
-
-  NO_GROUP = Group.new(0)
-
-  ALL_CATEGORIES = ~Bitmask.new(0)
-
-  WILDCARD_COLLISION_TYPE = ~CollisionType.new(0)
 
   struct HashSet
     entries : UInt32
@@ -38,7 +43,7 @@ lib LibCP
 
   alias SpatialIndexIteratorFunc = (Void*, Void*) ->
 
-  alias SpatialIndexQueryFunc = (Void*, Void*, CollisionID, Void*) -> CollisionID
+  alias SpatialIndexQueryFunc = (Void*, Void*, CP::CollisionID, Void*) -> CP::CollisionID
 
   alias SpatialIndexSegmentQueryFunc = (Void*, Void*, Void*) -> Float64
 
@@ -58,7 +63,7 @@ lib LibCP
     pooled_bins : Void*
     pooled_handles : Array*
     allocated_buffers : Array*
-    stamp : Timestamp
+    stamp : CP::Timestamp
   end
 
   fun space_hash_alloc = cpSpaceHashAlloc() : SpaceHash*
@@ -77,7 +82,7 @@ lib LibCP
     pooled_nodes : Void*
     pooled_pairs : Void*
     allocated_buffers : Array
-    stamp : Timestamp
+    stamp : CP::Timestamp
   end
 
   fun bb_tree_alloc = cpBBTreeAlloc() : BBTree*
@@ -319,10 +324,6 @@ lib LibCP
 
   fun body_each_arbiter = cpBodyEachArbiter(body : Body*, func : BodyArbiterIteratorFunc, data : Void*)
 
-  SHAPE_FILTER_ALL = {NO_GROUP, ALL_CATEGORIES, ALL_CATEGORIES}
-
-  SHAPE_FILTER_NONE = {NO_GROUP, ~ALL_CATEGORIES, ~ALL_CATEGORIES}
-
   fun shape_destroy = cpShapeDestroy(shape : Shape*)
 
   fun shape_free = cpShapeFree(shape : Shape*)
@@ -379,9 +380,9 @@ lib LibCP
 
   fun shape_set_user_data = cpShapeSetUserData(shape : Shape*, user_data : DataPointer)
 
-  fun shape_get_collision_type = cpShapeGetCollisionType(shape : Shape*) : CollisionType
+  fun shape_get_collision_type = cpShapeGetCollisionType(shape : Shape*) : CP::CollisionType
 
-  fun shape_set_collision_type = cpShapeSetCollisionType(shape : Shape*, collision_type : CollisionType)
+  fun shape_set_collision_type = cpShapeSetCollisionType(shape : Shape*, collision_type : CP::CollisionType)
 
   fun shape_get_filter = cpShapeGetFilter(shape : Shape*) : CP::ShapeFilter
 
@@ -696,8 +697,8 @@ lib LibCP
   alias CollisionSeparateFunc = (Arbiter*, Space*, DataPointer) ->
 
   struct CollisionHandler
-    type_a : CollisionType
-    type_b : CollisionType
+    type_a : CP::CollisionType
+    type_b : CP::CollisionType
     begin_func : CollisionBeginFunc
     pre_solve_func : CollisionPreSolveFunc
     post_solve_func : CollisionPostSolveFunc
@@ -743,9 +744,9 @@ lib LibCP
 
   fun space_set_collision_bias = cpSpaceSetCollisionBias(space : Space*, collision_bias : Float64)
 
-  fun space_get_collision_persistence = cpSpaceGetCollisionPersistence(space : Space*) : Timestamp
+  fun space_get_collision_persistence = cpSpaceGetCollisionPersistence(space : Space*) : CP::Timestamp
 
-  fun space_set_collision_persistence = cpSpaceSetCollisionPersistence(space : Space*, collision_persistence : Timestamp)
+  fun space_set_collision_persistence = cpSpaceSetCollisionPersistence(space : Space*, collision_persistence : CP::Timestamp)
 
   fun space_get_user_data = cpSpaceGetUserData(space : Space*) : DataPointer
 
@@ -759,9 +760,9 @@ lib LibCP
 
   fun space_add_default_collision_handler = cpSpaceAddDefaultCollisionHandler(space : Space*) : CollisionHandler*
 
-  fun space_add_collision_handler = cpSpaceAddCollisionHandler(space : Space*, a : CollisionType, b : CollisionType) : CollisionHandler*
+  fun space_add_collision_handler = cpSpaceAddCollisionHandler(space : Space*, a : CP::CollisionType, b : CP::CollisionType) : CollisionHandler*
 
-  fun space_add_wildcard_handler = cpSpaceAddWildcardHandler(space : Space*, type : CollisionType) : CollisionHandler*
+  fun space_add_wildcard_handler = cpSpaceAddWildcardHandler(space : Space*, type : CP::CollisionType) : CollisionHandler*
 
   fun space_add_shape = cpSpaceAddShape(space : Space*, shape : Shape*) : Shape*
 
@@ -827,30 +828,17 @@ lib LibCP
 
   fun space_step = cpSpaceStep(space : Space*, dt : Float64)
 
-  struct SpaceDebugColor
-    r : Float32
-    g : Float32
-    b : Float32
-    a : Float32
-  end
+  alias SpaceDebugDrawCircleImpl = (CP::Vect, Float64, Float64, CP::Space::DebugDraw::Color, CP::Space::DebugDraw::Color, DataPointer) ->
 
-  alias SpaceDebugDrawCircleImpl = (CP::Vect, Float64, Float64, SpaceDebugColor, SpaceDebugColor, DataPointer) ->
+  alias SpaceDebugDrawSegmentImpl = (CP::Vect, CP::Vect, CP::Space::DebugDraw::Color, DataPointer) ->
 
-  alias SpaceDebugDrawSegmentImpl = (CP::Vect, CP::Vect, SpaceDebugColor, DataPointer) ->
+  alias SpaceDebugDrawFatSegmentImpl = (CP::Vect, CP::Vect, Float64, CP::Space::DebugDraw::Color, CP::Space::DebugDraw::Color, DataPointer) ->
 
-  alias SpaceDebugDrawFatSegmentImpl = (CP::Vect, CP::Vect, Float64, SpaceDebugColor, SpaceDebugColor, DataPointer) ->
+  alias SpaceDebugDrawPolygonImpl = (Int32, CP::Vect*, Float64, CP::Space::DebugDraw::Color, CP::Space::DebugDraw::Color, DataPointer) ->
 
-  alias SpaceDebugDrawPolygonImpl = (Int32, CP::Vect*, Float64, SpaceDebugColor, SpaceDebugColor, DataPointer) ->
+  alias SpaceDebugDrawDotImpl = (Float64, CP::Vect, CP::Space::DebugDraw::Color, DataPointer) ->
 
-  alias SpaceDebugDrawDotImpl = (Float64, CP::Vect, SpaceDebugColor, DataPointer) ->
-
-  alias SpaceDebugDrawColorForShapeImpl = (Shape, DataPointer) -> SpaceDebugColor
-
-  enum SpaceDebugDrawFlags
-    SPACE_DEBUG_DRAW_SHAPES = 1 << 0
-    SPACE_DEBUG_DRAW_CONSTRAINTS = 1 << 1
-    SPACE_DEBUG_DRAW_COLLISION_POINTS = 1 << 2
-  end
+  alias SpaceDebugDrawColorForShapeImpl = (Shape*, DataPointer) -> CP::Space::DebugDraw::Color
 
   struct SpaceDebugDrawOptions
     draw_circle : SpaceDebugDrawCircleImpl
@@ -858,11 +846,11 @@ lib LibCP
     draw_fat_segment : SpaceDebugDrawFatSegmentImpl
     draw_polygon : SpaceDebugDrawPolygonImpl
     draw_dot : SpaceDebugDrawDotImpl
-    flags : SpaceDebugDrawFlags
-    shape_outline_color : SpaceDebugColor
+    flags : CP::Space::DebugDraw::Flags
+    shape_outline_color : CP::Space::DebugDraw::Color
     color_for_shape : SpaceDebugDrawColorForShapeImpl
-    constraint_color : SpaceDebugColor
-    collision_point_color : SpaceDebugColor
+    constraint_color : CP::Space::DebugDraw::Color
+    collision_point_color : CP::Space::DebugDraw::Color
     data : DataPointer
   end
 
@@ -940,7 +928,7 @@ lib LibCP
 
   fun hash_set_filter = cpHashSetFilter(set : HashSet*, func : HashSetFilterFunc, data : Void*)
 
-  struct BodySleeping_
+  struct BodySleeping
     root : Body*
     next_ : Body*
     idle_time : Float64
@@ -968,7 +956,7 @@ lib LibCP
     shape_list : Shape*
     arbiter_list : Arbiter*
     constraint_list : Constraint*
-    sleeping : BodySleeping_
+    sleeping : BodySleeping
   end
 
   fun body_add_shape = cpBodyAddShape(body : Body*, shape : Shape*)
@@ -982,11 +970,11 @@ lib LibCP
   fun spatial_index_init = cpSpatialIndexInit(index : SpatialIndex*, klass : SpatialIndexClass*, bbfunc : SpatialIndexBBFunc, static_index : SpatialIndex*) : SpatialIndex*
 
   enum ArbiterState
-    ARBITER_STATE_FIRST_COLLISION
-    ARBITER_STATE_NORMAL
-    ARBITER_STATE_IGNORE
-    ARBITER_STATE_CACHED
-    ARBITER_STATE_INVALIDATED
+    FIRST_COLLISION
+    NORMAL
+    IGNORE
+    CACHED
+    INVALIDATED
   end
 
   struct ArbiterThread
@@ -1010,7 +998,7 @@ lib LibCP
   struct CollisionInfo
     a : Shape*
     b : Shape*
-    id : CollisionID
+    id : CP::CollisionID
     n : CP::Vect
     count : Int32
     arr : Contact*
@@ -1034,7 +1022,7 @@ lib LibCP
     handler_a : CollisionHandler*
     handler_b : CollisionHandler*
     swapped : Bool
-    stamp : Timestamp
+    stamp : CP::Timestamp
     state : ArbiterState
   end
 
@@ -1091,7 +1079,7 @@ lib LibCP
     u : Float64
     surface_v : CP::Vect
     user_data : DataPointer
-    type : CollisionType
+    type : CP::CollisionType
     filter : CP::ShapeFilter
     next_ : Shape*
     prev : Shape*
@@ -1133,7 +1121,7 @@ lib LibCP
 
   fun shape_init = cpShapeInit(shape : Shape*, klass : ShapeClass*, body : Body*, mass_info : ShapeMassInfo) : Shape*
 
-  fun collide = cpCollide(a : Shape*, b : Shape*, id : CollisionID, contacts : Contact*) : CollisionInfo
+  fun collide = cpCollide(a : Shape*, b : Shape*, id : CP::CollisionID, contacts : Contact*) : CollisionInfo
 
   fun loop_indexes = cpLoopIndexes(verts : CP::Vect*, count : Int32, start : Int32*, end_ : Int32*)
 
@@ -1298,9 +1286,9 @@ lib LibCP
     sleep_time_threshold : Float64
     collision_slop : Float64
     collision_bias : Float64
-    collision_persistence : Timestamp
+    collision_persistence : CP::Timestamp
     user_data : DataPointer
-    stamp : Timestamp
+    stamp : CP::Timestamp
     curr_dt : Float64
     dynamic_bodies : Array*
     static_bodies : Array*
@@ -1357,7 +1345,7 @@ lib LibCP
 
   fun shape_update_func = cpShapeUpdateFunc(shape : Shape*, unused : Void*)
 
-  fun space_collide_shapes = cpSpaceCollideShapes(a : Shape*, b : Shape*, id : CollisionID, space : Space*) : CollisionID
+  fun space_collide_shapes = cpSpaceCollideShapes(a : Shape*, b : Shape*, id : CP::CollisionID, space : Space*) : CP::CollisionID
 
   fun circle_shape_set_radius = cpCircleShapeSetRadius(shape : Shape*, radius : Float64)
 
@@ -1372,4 +1360,11 @@ lib LibCP
   fun poly_shape_set_verts_raw = cpPolyShapeSetVertsRaw(shape : Shape*, count : Int32, verts : CP::Vect*)
 
   fun poly_shape_set_radius = cpPolyShapeSetRadius(shape : Shape*, radius : Float64)
+
+  struct PointQueryContext
+    point : CP::Vect
+    max_distance : Float64
+    filter : CP::ShapeFilter
+    func : SpacePointQueryFunc
+  end
 end
