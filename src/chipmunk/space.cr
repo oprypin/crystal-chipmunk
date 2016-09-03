@@ -188,14 +188,15 @@ module CP
     end
 
     def point_query_nearest(point : Vect, max_distance : Number, filter : ShapeFilter) : PointQueryInfo
-      LibCP.point_query_nearest(self, point, max_distance, filter, out info)
+      shape = LibCP.space_point_query_nearest(self, point, max_distance, filter, out info)
+      #info.shape = shape
       info
     end
 
     #def segment_query
 
     def segment_query_first(start : Vect, end : Vect, radius : Float64, filter : ShapeFilter) : SegmentQueryInfo
-      LibCP.segment_query_first(self, start, end, radius, filter, out info)
+      LibCP.space_segment_query_first(self, start, end, radius, filter, out info)
       info
     end
 
