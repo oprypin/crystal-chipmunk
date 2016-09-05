@@ -24,6 +24,8 @@ module CP
   class Space
     def initialize()
       @space = uninitialized LibCP::Space
+      @in_step = false
+      @todo = {} of (Body | Shape | Constraint) => Bool
       LibCP.space_init(self)
       LibCP.space_set_user_data(self, self.as(Void*))
     end
@@ -33,12 +35,12 @@ module CP
       pointerof(@space)
     end
     # :nodoc:
-    def self.from(this : LibCP::Space*) : self
+    def self.[](this : LibCP::Space*) : self
       LibCP.space_get_user_data(this).as(self)
     end
     # :nodoc:
-    def self.from?(this : LibCP::Space*) : self?
-      self.from(this) if this
+    def self.[]?(this : LibCP::Space*) : self?
+      self[this] if this
     end
 
     def finalize
@@ -114,36 +116,61 @@ module CP
       LibCP.space_is_locked(self)
     end
 
-    #def add_default_collision_handler() : CollisionHandler
-    #end
+    def add_collision_handler(a : Int, b : Int, handler : CollisionHandler) : CollisionHandler
+      handler.prime!(LibCP.space_add_collision_handler(self, a, b))
+    end
 
-    #def add_collision_handler(a : CollisionType, b : CollisionType) : CollisionHandler
-    #end
+    def add_collision_handler(type : Int, handler : CollisionHandler) : CollisionHandler
+      handler.prime!(LibCP.space_add_wildcard_handler(self, type))
+    end
 
-    #def add_wildcard_handler(type : CollisionType) : CollisionHandler
-    #end
+    def add_collision_handler(handler : CollisionHandler) : CollisionHandler
+      handler.prime!(LibCP.space_add_default_collision_handler(self))
+    end
 
-    def add(shape : Shape)
+    private def _add(shape : Shape)
       LibCP.space_add_shape(self, shape)
       shape
     end
-    def add(body : Body)
+    private def _add(body : Body)
       LibCP.space_add_body(self, body)
       body
     end
-    def add(constraint : Constraint)
+    private def _add(constraint : Constraint)
       LibCP.space_add_constraint(self, constraint)
       constraint
     end
 
-    def remove(shape : Shape)
+    def add(*items : (Shape | Body | Constraint))
+      items.each do |item|
+        if @in_step
+          @todo[item] = true
+        else
+          _add item
+        end
+      end
+      items[0]
+    end
+
+    private def _remove(shape : Shape)
       LibCP.space_remove_shape(self, shape)
     end
-    def remove(body : Body)
+    private def _remove(body : Body)
       LibCP.space_remove_body(self, body)
     end
-    def remove(constraint : Constraint)
+    private def _remove(constraint : Constraint)
       LibCP.space_remove_constraint(self, constraint)
+    end
+
+    def remove(*items : (Shape | Body | Constraint))
+      items.each do |item|
+        if @in_step
+          @todo[item] = false
+        else
+          _remove item
+        end
+      end
+      items[0]
     end
 
     def contains?(shape : Shape) : Bool
@@ -156,71 +183,77 @@ module CP
       LibCP.space_contains_constraint(self, constraint)
     end
 
-    #def add_post_step_callback
+#     gather point_query : PointQueryInfo,
+#     def point_query(point : Vect, max_distance : Number = 0, filter : ShapeFilter = ShapeFilter::ALL, &block : PointQueryInfo ->)
+#       # Can't use the proper interface because https://github.com/crystal-lang/crystal/issues/605
+#       context = LibCP::PointQueryContext.new(point: point, max_distance: max_distance, filter: filter, func: ->(s: LibCP::Shape*, p: Vect, m: Float64, g: Vect, d: Void*) { })
+#       bb = BB.new_for_circle(point, {max_distance, 0.0}.max)
+#
+#       LibCP.space_lock(self)
+#       {to_unsafe.value.dynamic_shapes, to_unsafe.value.static_shapes}.each do |index|
+#         index.value.klass.value.query.call(index, pointerof(context).as(Void*), bb, (->(context : Void*, shape : Void*, id : CollisionID, data : Void*) {
+#           context = context.as(LibCP::PointQueryContext*)
+#           shape = shape.as(LibCP::Shape*)
+#           a = shape.value.filter
+#           b = context.value.filter
+#
+#           unless (
+#             a.group != 0 && a.group == b.group ||
+#             (a.categories & b.mask) == 0 || (b.categories & a.mask) == 0
+#           )
+#             LibCP.shape_point_query(shape, context.value.point, out info)
+#
+#             if info.shape && info.distance < context.value.max_distance
+#               info.shape = shape
+#               p context.value.func
+#             end
+#           end
+#           id
+#         }), pointerof(block).as(Void*))
+#       end
+#       LibCP.space_unlock(self, true)
+#     end
 
-    def point_query(point : Point, max_distance : Number, filter : ShapeFilter, &block : PointQueryInfo ->)
-      # Can't use the proper interface because https://github.com/crystal-lang/crystal/issues/605
-      context = PointQueryContext.new(point: point, max_distance: max_distance, filter: filter, func: nil)
-      bb = BB.new_for_circle(point, {max_distance, 0.0}.max)
-
-      LibCP.space_lock(self)
-      {% for index in %w[dynamic_shapes static_shapes] %}
-        index = to_unsafe.value.{{index.id}}
-        index.value.klass.value.query.call(index, pointerof(context), bb, ->(context, shape, id, data) {
-          a = shape.value.filter
-          b = context.value.filter
-
-          unless (
-            a.group != 0 && a.group == b.group ||
-            (a.categories & b.mask) == 0 || (b.categories & a.mask) == 0
-          )
-            LibCP.shape_point_query(shape, context.value.point, out info)
-
-            if info.shape && info.distance < context.value.max_distance
-              info.shape = shape
-              data.as(typeof(block)*).value.call(info)
-            end
-          end
-          id
-        }, pointerof(block))
-      {% end %}
-      LibCP.space_unlock(self, true)
-    end
-
-    def point_query_nearest(point : Vect, max_distance : Number, filter : ShapeFilter) : PointQueryInfo
-      shape = LibCP.space_point_query_nearest(self, point, max_distance, filter, out info)
-      #info.shape = shape
-      info
+    def point_query_nearest(point : Vect, max_distance : Number = 0, filter : ShapeFilter = ShapeFilter::ALL) : PointQueryInfo?
+      if (shape = LibCP.space_point_query_nearest(self, point, max_distance, filter, out info))
+        info.shape = shape
+        info
+      end
     end
 
     #def segment_query
 
-    def segment_query_first(start : Vect, end : Vect, radius : Float64, filter : ShapeFilter) : SegmentQueryInfo
-      LibCP.space_segment_query_first(self, start, end, radius, filter, out info)
-      info
+    def segment_query_first(start : Vect, end : Vect, radius : Number = 0, filter : ShapeFilter = ShapeFilter::ALL) : SegmentQueryInfo?
+      if LibCP.space_segment_query_first(self, start, end, radius, filter, out info)
+        info
+      end
     end
 
-    #def bb_query
-
-    #def shape_query
-
-    def each_body(&block : Body ->)
-      LibCP.space_each_body(self, ->(body, data) {
-        data.as(typeof(block)*).value.call(Body.from(body))
+    _cp_gather bb_query : Shape,
+    def bb_query(bb : BB, filter : ShapeFilter = ShapeFilter::ALL, &block : Shape ->)
+      LibCP.space_bb_query(self, bb, filter, ->(shape, data) {
+        data.as(typeof(block)*).value.call(Shape[shape])
       }, pointerof(block))
     end
 
-    def each_shape(&block : Shape ->)
-      LibCP.space_each_shape(self, ->(shape, data) {
-        data.as(typeof(block)*).value.call(Shape.from(shape))
+    _cp_gather shape_query : Shape,
+    def shape_query(shape : Shape, &block : (Shape, ContactPointSet) ->)
+      LibCP.space_shape_query(self, shape, ->(shape, contact_point_set, data) {
+        data.as(typeof(block)*).value.call(Shape[shape], contact_point_set.value)
       }, pointerof(block))
     end
 
-    def each_constraint(&block : Constraint ->)
-      LibCP.space_each_constraint(self, ->(constraint, data) {
-        data.as(typeof(block)*).value.call(Constraint.from(constraint))
-      }, pointerof(block))
-    end
+    {% for type in %w[Body Shape Constraint] %}
+      {% name = type.downcase.id %}
+      {% type = type.id %}
+
+      _cp_gather {% if type == "Body" %}bodies{% else %}{{name + "s"}}{% end %} : {{type}},
+      def each_{{name}}(&block : {{type}} ->)
+        LibCP.space_each_{{name}}(self, ->(item, data) {
+          data.as(typeof(block)*).value.call({{type}}[item])
+        }, pointerof(block))
+      end
+    {% end %}
 
     def reindex_static()
       LibCP.space_reindex_static(self)
@@ -239,7 +272,18 @@ module CP
     end
 
     def step(dt : Number)
+      @in_step = true
       LibCP.space_step(self, dt)
+      @in_step = false
+
+      @todo.each do |item, add|
+        if add
+          _add item
+        else
+          _remove item
+        end
+      end
+      @todo.clear
     end
   end
 end

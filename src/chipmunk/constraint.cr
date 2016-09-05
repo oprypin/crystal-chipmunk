@@ -19,26 +19,30 @@
 # SOFTWARE.
 
 
+require "./util"
+
 module CP
   abstract class Constraint
     @@pre_solve : LibCP::ConstraintPreSolveFunc =
     ->(constraint : LibCP::Constraint*, space : LibCP::Space*) {
-      Constraint.from(constraint).pre_solve(Space.from(space))
+      Constraint[constraint].pre_solve(Space[space])
+      nil
     }
     @@post_solve : LibCP::ConstraintPostSolveFunc =
     ->(constraint : LibCP::Constraint*, space : LibCP::Space*) {
-      Constraint.from(constraint).post_solve(Space.from(space))
+      Constraint[constraint].post_solve(Space[space])
+      nil
     }
 
     abstract def to_unsafe : LibCP::Constraint
 
     # :nodoc:
-    def self.from(this : LibCP::Constraint*) : self
+    def self.[](this : LibCP::Constraint*) : self
       LibCP.constraint_get_user_data(this).as(self)
     end
     # :nodoc:
-    def self.from?(this : LibCP::Constraint*) : self?
-      self.from(this) if this
+    def self.[]?(this : LibCP::Constraint*) : self?
+      self[this] if this
     end
 
     def finalize
@@ -46,14 +50,18 @@ module CP
     end
 
     def space : Space?
-      Space.from?(LibCP.constraint_get_space(self))
+      Space[LibCP.constraint_get_space(self)]?
     end
 
     def body_a : Body
-      Body.from(LibCP.constraint_get_body_a(self))
+      Body[LibCP.constraint_get_body_a(self)]
     end
     def body_b : Body
-      Body.from(LibCP.constraint_get_body_b(self))
+      Body[LibCP.constraint_get_body_b(self)]
+    end
+
+    def bodies : {Body, Body}
+      {body_a, body_b}
     end
 
     def max_force : Float64
@@ -340,7 +348,7 @@ module CP
   class DampedSpring < Constraint
     @@spring_force : LibCP::DampedSpringForceFunc =
     ->(constraint : LibCP::Constraint*, dist : Float64) {
-      DampedSpring.from(constraint).spring_force(dist).to_f
+      DampedSpring[constraint].spring_force(dist).to_f
     }
 
     def initialize(a : Body, b : Body, anchor_a : Vect, anchor_b : Vect, rest_length : Number, stiffness : Number, damping : Number)
@@ -349,7 +357,7 @@ module CP
       LibCP.constraint_set_user_data(self, self.as(Void*))
       _cp_if_overridden :pre_solve { LibCP.constraint_set_pre_solve_func(self, @@pre_solve) }
       _cp_if_overridden :post_solve { LibCP.constraint_set_post_solve_func(self, @@post_solve) }
-      _cp_if_overridden :spring_force { LibCP.damped_spring_set_spring_torque_func(self, @@spring_force) }
+      _cp_if_overridden :spring_force { LibCP.damped_spring_set_spring_force_func(self, @@spring_force) }
     end
 
     # :nodoc:
@@ -398,9 +406,9 @@ module CP
   end
 
   class DampedRotarySpring < Constraint
-    @@spring_torque : (LibCP::Constraint*, Float64)->Float64 =
+    @@spring_torque : LibCP::DampedRotarySpringTorqueFunc =
     ->(constraint : LibCP::Constraint*, relative_angle : Float64) {
-      DampedRotarySpring.from(constraint).spring_torque(relative_angle).to_f
+      DampedRotarySpring[constraint].spring_torque(relative_angle).to_f
     }
 
     def initialize(a : Body, b : Body, rest_angle : Number, stiffness : Number, damping : Number)

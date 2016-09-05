@@ -19,6 +19,8 @@
 # SOFTWARE.
 
 
+require "./util"
+
 module CP
   class Body
     enum Type
@@ -26,20 +28,23 @@ module CP
       KINEMATIC
       STATIC
     end
+    DYNAMIC = Type::DYNAMIC
+    KINEMATIC = Type::KINEMATIC
+    STATIC = Type::STATIC
 
-    def initialize(mass : Number, moment : Number)
+    def initialize(mass : Number = 0, moment : Number = 0)
       @body = uninitialized LibCP::Body
       LibCP.body_init(self, mass, moment)
       LibCP.body_set_user_data(self, self.as(Void*))
     end
 
     def self.new_kinematic() : self
-      body = self.new(0, 0)
+      body = self.new
       body.type = Type::KINEMATIC
       body
     end
     def self.new_static() : self
-      body = self.new(0, 0)
+      body = self.new
       body.type = Type::STATIC
       body
     end
@@ -49,12 +54,12 @@ module CP
       pointerof(@body)
     end
     # :nodoc:
-    def self.from(this : LibCP::Body*) : self
+    def self.[](this : LibCP::Body*) : self
       LibCP.body_get_user_data(this).as(self)
     end
     # :nodoc:
-    def self.from?(this : LibCP::Body*) : self?
-      self.from(this) if this
+    def self.[]?(this : LibCP::Body*) : self?
+      self[this] if this
     end
 
     def finalize
@@ -70,9 +75,11 @@ module CP
     end
 
     def sleep()
+      raise "Body not added to space" if !LibCP.body_get_space(self)
       LibCP.body_sleep(self)
     end
     def sleep_with_group(group : Body?)
+      raise "Body not added to space" if !LibCP.body_get_space(self)
       LibCP.body_sleep_with_group(self, group)
     end
 
@@ -88,7 +95,7 @@ module CP
     end
 
     def space : Space?
-      Space.new(LibCP.body_get_space(self))
+      Space[LibCP.body_get_space(self)]?
     end
 
     def mass : Float64
@@ -151,10 +158,10 @@ module CP
       LibCP.body_get_torque(self)
     end
     def torque=(torque : Number)
-      LibCP.body_set_torquee(self, torque)
+      LibCP.body_set_torque(self, torque)
     end
 
-    def rotation : Float64
+    def rotation : Vect
       LibCP.body_get_rotation(self)
     end
 
@@ -179,10 +186,10 @@ module CP
       LibCP.body_apply_impulse_at_local_point(self, impulse, point)
     end
 
-    def get_velocity_at_world_point(point : Vect) : Vect
+    def velocity_at_world_point(point : Vect) : Vect
       LibCP.body_get_velocity_at_world_point(self, point)
     end
-    def get_velocity_at_local_point(point : Vect) : Vect
+    def velocity_at_local_point(point : Vect) : Vect
       LibCP.body_get_velocity_at_local_point(self, point)
     end
 
@@ -190,20 +197,16 @@ module CP
       LibCP.body_kinetic_energy(self)
     end
 
-    def each_shape(&block : Shape ->)
-      LibCP.body_each_shape(self, ->(body, shape, data) {
-        data.as(typeof(block)*).value.call(Shape.from(shape))
-      }, pointerof(block))
-    end
-    def each_constraint(&block : Constraint ->)
-      LibCP.body_each_constraint(self, ->(body, constraint, data) {
-        data.as(typeof(block)*).value.call(Shape.from(constraint))
-      }, pointerof(block))
-    end
-    def each_arbiter(&block : Arbiter ->)
-      LibCP.body_each_arbiter(self, ->(body, arbiter, data) {
-        data.as(typeof(block)*).value.call(Arbiter.from(arbiter))
-      }, pointerof(block))
-    end
+    {% for type in %w[Shape Constraint Arbiter] %}
+      {% name = type.downcase.id %}
+      {% type = type.id %}
+
+      _cp_gather {{name}}s : {{type}},
+      def each_{{name}}(&block : {{type}} ->)
+        LibCP.body_each_{{name}}(self, ->(body, item, data) {
+          data.as(typeof(block)*).value.call({{type}}[item])
+        }, pointerof(block))
+      end
+    {% end %}
   end
 end

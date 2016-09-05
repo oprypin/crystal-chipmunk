@@ -12,12 +12,12 @@ space.add(ground)
 radius = 5.0
 mass = 1.0
 
-moment = CP.moment_for_circle(mass, 0.0, radius, CP.v(0, 0))
+moment = CP.moment_for_circle(mass, 0.0, radius)
 
 ball_body = space.add(CP::Body.new(mass, moment))
 ball_body.position = CP.v(0, 15)
 
-ball_shape = space.add(CP::CircleShape.new(ball_body, radius, CP.v(0, 0)))
+ball_shape = space.add(CP::CircleShape.new(ball_body, radius))
 ball_shape.friction = 0.7
 
 time_step = 1.0/60.0

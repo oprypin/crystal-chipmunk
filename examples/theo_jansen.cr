@@ -57,12 +57,12 @@ class TheoJansen < Demo
     # make crank
     crank_mass = 1.0
     crank_radius = 13.0
-    crank = space.add CP::Body.new(crank_mass, CP.moment_for_circle(crank_mass, crank_radius, 0.0, CP.v(0, 0)))
+    crank = space.add CP::Body.new(crank_mass, CP.moment_for_circle(crank_mass, crank_radius, 0.0, CP.vzero))
 
-    shape = space.add CP::CircleShape.new(crank, crank_radius, CP.v(0, 0))
+    shape = space.add CP::CircleShape.new(crank, crank_radius, CP.vzero)
     shape.filter = CP::ShapeFilter.new(1, CP::ALL_CATEGORIES, CP::ALL_CATEGORIES)
 
-    space.add CP::PivotJoint.new(chassis, crank, CP.v(0, 0), CP.v(0, 0))
+    space.add CP::PivotJoint.new(chassis, crank, CP.vzero, CP.vzero)
 
     side = 30.0
 
@@ -72,7 +72,7 @@ class TheoJansen < Demo
       leg_mass = 1.0
 
       # make leg
-      a = CP.v(0, 0)
+      a = CP.vzero
       b = CP.v(0, side)
       upper_leg = space.add CP::Body.new(leg_mass, CP.moment_for_segment(leg_mass, a, b, 1.0))
       upper_leg.position = CP.v(offset, 0.0)
@@ -80,10 +80,10 @@ class TheoJansen < Demo
       shape = space.add CP::SegmentShape.new(upper_leg, a, b, seg_radius)
       shape.filter = CP::ShapeFilter.new(1, CP::ALL_CATEGORIES, CP::ALL_CATEGORIES)
 
-      space.add CP::PivotJoint.new(chassis, upper_leg, CP.v(offset, 0.0), CP.v(0, 0))
+      space.add CP::PivotJoint.new(chassis, upper_leg, CP.v(offset, 0.0), CP.vzero)
 
       # lower leg
-      a = CP.v(0, 0)
+      a = CP.vzero
       b = CP.v(0, -1*side)
       lower_leg = space.add CP::Body.new(leg_mass, CP.moment_for_segment(leg_mass, a, b, 0.0))
       lower_leg.position = CP.v(offset, -side)
@@ -96,7 +96,7 @@ class TheoJansen < Demo
       shape.elasticity = 0.0
       shape.friction = 1.0
 
-      space.add CP::PinJoint.new(chassis, lower_leg, CP.v(offset, 0.0), CP.v(0, 0))
+      space.add CP::PinJoint.new(chassis, lower_leg, CP.v(offset, 0.0), CP.vzero)
 
       space.add CP::GearJoint.new(upper_leg, lower_leg, 0.0, 1.0)
 
@@ -105,7 +105,7 @@ class TheoJansen < Demo
       constraint = space.add CP::PinJoint.new(crank, upper_leg, anchor, CP.v(0.0, side))
       constraint.dist = diag
 
-      constraint = space.add CP::PinJoint.new(crank, lower_leg, anchor, CP.v(0, 0))
+      constraint = space.add CP::PinJoint.new(crank, lower_leg, anchor, CP.vzero)
       constraint.dist = diag
 
       offset *= -1

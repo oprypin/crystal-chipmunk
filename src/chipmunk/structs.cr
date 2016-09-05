@@ -152,26 +152,24 @@ module CP
     Vect.new(x, y)
   end
 
+  def vzero()
+    Vect.new(0.0, 0.0)
+  end
+
   @[Extern]
   struct Transform
+    IDENTITY = new
+
     property a : Float64, b : Float64, c : Float64, d : Float64
     property tx : Float64, ty : Float64
 
-    def initialize(a : Number, b : Number, c : Number, d : Number, tx : Number, ty : Number)
+    def initialize(a : Number = 1, b : Number = 0, c : Number = 0, d : Number = 1, tx : Number = 0, ty : Number = 0)
       @a = a.to_f
       @b = b.to_f
       @c = c.to_f
       @d = d.to_f
       @tx = tx.to_f
       @ty = ty.to_f
-    end
-    def initialize()
-      @a = 1.0
-      @b = 0.0
-      @c = 0.0
-      @d = 1.0
-      @tx = 0.0
-      @ty = 0.0
     end
 
     def self.new_transpose(a : Number, c : Number, tx : Number, b : Number, d : Number, ty : Number) : self
@@ -188,8 +186,8 @@ module CP
 
     def *(t2 : Transform) : Transform
       Transform.new_transpose(
-        @a*t2.a + @c*t2.b, @a*t2.c + @c*t2.d, @a*t2.tx + @c*t2.ty + @tx,
-        @b*t2.a + @d*t2.b, @b*t2.c + @d*t2.d, @b*t2.tx + @d*t2.ty + @ty
+        @a*t2.a + @c*t2.bottom, @a*t2.c + @c*t2.d, @a*t2.tx + @c*t2.ty + @tx,
+        @b*t2.a + @d*t2.bottom, @b*t2.c + @d*t2.d, @b*t2.tx + @d*t2.ty + @ty
       )
     end
 
@@ -203,8 +201,8 @@ module CP
 
     def transform(bb : BB) : BB
       center = bb.center
-      hw = (bb.r - bb.l) * 0.5
-      hh = (bb.t - bb.b) * 0.5
+      hw = (bb.right - bb.left) * 0.5
+      hh = (bb.top - bb.bottom) * 0.5
       a = @a * hw
       b = @c * hh
       d = @b * hw
@@ -249,8 +247,8 @@ module CP
 
     def self.ortho(bb : BB) : self
       Transform.new_transpose(
-        2.0/(bb.r - bb.l), 0.0, -(bb.r + bb.l)/(bb.r - bb.l),
-        0.0, 2.0/(bb.t - bb.b), -(bb.t + bb.b)/(bb.t - bb.b)
+        2.0/(bb.right - bb.left), 0.0, -(bb.right + bb.left)/(bb.right - bb.left),
+        0.0, 2.0/(bb.top - bb.bottom), -(bb.top + bb.bottom)/(bb.top - bb.bottom)
       )
     end
 
@@ -287,13 +285,13 @@ module CP
 
   @[Extern]
   struct BB
-    property l : Float64, b : Float64, r : Float64, t : Float64
+    property left : Float64, bottom : Float64, right : Float64, top : Float64
 
-    def initialize(l : Number, b : Number, r : Number, t : Number)
-      @l = l.to_f
-      @b = b.to_f
-      @r = r.to_f
-      @t = t.to_f
+    def initialize(left : Number = 0, bottom : Number = 0, right : Number = 0, top : Number = 0)
+      @left = left.to_f
+      @bottom = bottom.to_f
+      @right = right.to_f
+      @top = top.to_f
     end
 
     def self.new_for_extents(c : Vect, hw : Number, hh : Number) : self
@@ -305,46 +303,46 @@ module CP
     end
 
     def intersects?(other : BB) : Bool
-      @l <= other.r && other.l <= @r && @b <= other.t && other.b <= @t
+      @left <= other.right && other.left <= @right && @bottom <= other.top && other.bottom <= @top
     end
 
     def contains?(other : BB) : Bool
-      @l <= other.l && @r >= other.r && @b <= other.b && @t >= other.t
+      @left <= other.left && @right >= other.right && @bottom <= other.bottom && @top >= other.top
     end
 
     def contains?(v : Vect) : Bool
-      @l <= v.x && @r >= v.x && @b <= v.y && @t >= v.y
+      @left <= v.x && @right >= v.x && @bottom <= v.y && @top >= v.y
     end
 
     def merge(b : BB) : BB
-      BB.new({@l, b.l}.min, {@b, b.b}.min, {@r, b.r}.max, {@t, b.t}.max)
+      BB.new({@left, b.left}.min, {@bottom, b.bottom}.min, {@right, b.right}.max, {@top, b.top}.max)
     end
 
     def expand(v : Vect) : BB
-      BB.new({@l, v.x}.min, {@b, v.y}.min, {@r, v.x}.max, {@t, v.y}.max)
+      BB.new({@left, v.x}.min, {@bottom, v.y}.min, {@right, v.x}.max, {@top, v.y}.max)
     end
 
     def center() : Vect
-      vlerp(Vect.new(@l, @b), Vect.new(@r, @t), 0.5)
+      Vect.lerp(Vect.new(@left, @bottom), Vect.new(@right, @top), 0.5)
     end
 
     def area() : Float64
-      (@r - @l) * (@t - @b)
+      (@right - @left) * (@top - @bottom)
     end
 
     def merged_area(b : BB) : Float64
-      ({@r, b.r}.max - {@l, b.l}.min) * ({@t, b.t}.max - {@b, b.b}.min)
+      ({@right, b.right}.max - {@left, b.left}.min) * ({@top, b.top}.max - {@bottom, b.bottom}.min)
     end
 
     def segment_query(a : Vect, b : Vect) : Float64
       idx = 1.0 / (b.x - a.x)
-      tx1 = @l == a.x ? Float64::MIN : (@l - a.x) * idx
-      tx2 = @r == a.x ? Float64::MAX : (@r - a.x) * idx
+      tx1 = @left == a.x ? Float64::MIN : (@left - a.x) * idx
+      tx2 = @right == a.x ? Float64::MAX : (@right - a.x) * idx
       txmin = {tx1, tx2}.min
       txmax = {tx1, tx2}.max
       idy = 1.0 / (b.y - a.y)
-      ty1 = @b == a.y ? Float64::MIN : (@b - a.y) * idy
-      ty2 = @t == a.y ? Float64::MAX : (@t - a.y) * idy
+      ty1 = @bottom == a.y ? Float64::MIN : (@bottom - a.y) * idy
+      ty2 = @top == a.y ? Float64::MAX : (@top - a.y) * idy
       tymin = {ty1, ty2}.min
       tymax = {ty1, ty2}.max
       if tymin <= txmax && txmin <= tymax
@@ -362,21 +360,21 @@ module CP
     end
 
     def clamp_vect(v : Vect) : Vect
-      Vect.new(v.x.clamp(@l, @r), v.y.clamp(@b, @t))
+      Vect.new(v.x.clamp(@left, @right), v.y.clamp(@bottom, @top))
     end
 
     def wrap_vect(v : Vect) : Vect
-      dx = (@r - @l).abs
-      modx = (v.x - @l).fdiv(dx)
+      dx = (@right - @left).abs
+      modx = (v.x - @left).fdiv(dx)
       x = modx > 0.0 ? modx : modx + dx
-      dy = (@t - @b).abs
-      mody = (v.y - @b).fdiv(dy)
+      dy = (@top - @bottom).abs
+      mody = (v.y - @bottom).fdiv(dy)
       y = mody > 0.0 ? mody : mody + dy
-      Vect.new(x + @l, y + @b)
+      Vect.new(x + @left, y + @bottom)
     end
 
     def offset(v : Vect) : BB
-      BB.new(@l + v.x, @b + v.y, @r + v.x, @t + v.y)
+      BB.new(@left + v.x, @bottom + v.y, @right + v.x, @top + v.y)
     end
   end
 
@@ -388,14 +386,17 @@ module CP
     property gradient : Vect
 
     def initialize(shape : Shape, @point : Vect, @distance : Float64, @gradient : Vect)
-      @shape = shape ? shape.to_unsafe : Pointer(Shape).null
+      @shape = shape ? shape.to_unsafe : Pointer(LibCP::Shape).null
     end
 
     def shape : Shape?
-      Shape.from?(@shape)
+      Shape[@shape]?
     end
     def shape=(shape : Shape?)
-      @shape = shape ? shape.to_unsafe : Pointer(Shape).null
+      @shape = shape ? shape.to_unsafe : Pointer(LibCP::Shape).null
+    end
+    # :nodoc:
+    def shape=(@shape : LibCP::Shape*)
     end
   end
 
@@ -411,7 +412,7 @@ module CP
     end
 
     def shape : Shape?
-      Shape.from?(@shape)
+      Shape[@shape]?
     end
     def shape=(shape : Shape?)
       @shape = shape ? shape.to_unsafe : Pointer(Shape).null
@@ -424,9 +425,14 @@ module CP
     property categories : Bitmask
     property mask : Bitmask
 
-    def initialize(group : Int, @categories : Bitmask, @mask : Bitmask)
+    def initialize(group : Int = NO_GROUP, categories : Int = ALL_CATEGORIES, mask : Int = ALL_CATEGORIES)
       @group = Group.new(group)
+      @categories = Bitmask.new(categories)
+      @mask = Bitmask.new(mask)
     end
+
+    ALL = new(NO_GROUP, ALL_CATEGORIES, ALL_CATEGORIES)
+    NONE = new(NO_GROUP, ~ALL_CATEGORIES, ~ALL_CATEGORIES)
   end
 
   alias CollisionID = UInt32
@@ -438,6 +444,4 @@ module CP
   NO_GROUP = Group.new(0)
   ALL_CATEGORIES = ~Bitmask.new(0)
   WILDCARD_COLLISION_TYPE = ~CollisionType.new(0)
-  SHAPE_FILTER_ALL = ShapeFilter.new(NO_GROUP, ALL_CATEGORIES, ALL_CATEGORIES)
-  SHAPE_FILTER_NONE = ShapeFilter.new(NO_GROUP, ~ALL_CATEGORIES, ~ALL_CATEGORIES)
 end

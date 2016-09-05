@@ -24,12 +24,12 @@ module CP
     abstract def to_unsafe : LibCP::Shape
 
     # :nodoc:
-    def self.from(this : LibCP::Shape*) : self
+    def self.[](this : LibCP::Shape*) : self
       LibCP.shape_get_user_data(this).as(self)
     end
     # :nodoc:
-    def self.from?(this : LibCP::Shape*) : self?
-      self.from(this) if this
+    def self.[]?(this : LibCP::Shape*) : self?
+      self[this] if this
     end
 
     def finalize
@@ -49,7 +49,7 @@ module CP
       info
     end
 
-    def segment_query(a : Vect, b : Vect, radius : Number) : SegmentQueryInfo
+    def segment_query(a : Vect, b : Vect, radius : Number = 0) : SegmentQueryInfo
       LibCP.shape_segment_query(self, a, b, radius, out info)
       info
     end
@@ -59,11 +59,11 @@ module CP
     end
 
     def space : Space?
-      Space.from?(LibCP.shape_get_space(self))
+      Space[LibCP.shape_get_space(self)]?
     end
 
     def body : Body?
-      Body.from?(LibCP.shape_get_body(self))
+      Body[LibCP.shape_get_body(self)]?
     end
     def body=(body : Body?)
       LibCP.shape_set_body(self, body)
@@ -103,7 +103,7 @@ module CP
       LibCP.shape_get_sensor(self)
     end
     def sensor=(sensor : Bool)
-      LibCP.shape_set_density(self, sensor)
+      LibCP.shape_set_sensor(self, sensor)
     end
 
     def elasticity : Float64
@@ -127,10 +127,10 @@ module CP
       LibCP.shape_set_surface_velocity(self, surface_velocity)
     end
 
-    def collision_type : LibCP::CollisionType
+    def collision_type : CollisionType
       LibCP.shape_get_collision_type(self)
     end
-    def collision_type=(collision_type : LibCP::CollisionType)
+    def collision_type=(collision_type : Int)
       LibCP.shape_set_collision_type(self, collision_type)
     end
 
@@ -143,7 +143,7 @@ module CP
   end
 
   class CircleShape < Shape
-    def initialize(body : Body, radius : Number, offset : Vect)
+    def initialize(body : Body?, radius : Number, offset : Vect = CP::Vect.new(0, 0))
       @shape = uninitialized LibCP::CircleShape
       LibCP.circle_shape_init(pointerof(@shape), body, radius, offset)
       LibCP.shape_set_user_data(self, self.as(Void*))
@@ -164,7 +164,7 @@ module CP
   end
 
   class SegmentShape < Shape
-    def initialize(body : Body, a : Vect, b : Vect, radius : Number)
+    def initialize(body : Body?, a : Vect, b : Vect, radius : Number)
       @shape = uninitialized LibCP::SegmentShape
       LibCP.segment_shape_init(pointerof(@shape), body, a, b, radius)
       LibCP.shape_set_user_data(self, self.as(Void*))
@@ -173,6 +173,10 @@ module CP
     # :nodoc:
     def to_unsafe : LibCP::Shape*
       pointerof(@shape).as(LibCP::Shape*)
+    end
+
+    def set_neighbors(prev : Vect, next next_ : Vect)
+      LibCP.segment_shape_set_neighbors(self, prev, next_)
     end
 
     def a : Vect
@@ -195,12 +199,12 @@ module CP
     include Enumerable(Vect)
     include Indexable(Vect)
 
-    def initialize(body : Body, verts : Array(Vert)|Slice(Vert), transform : Transform, radius : Number)
+    def initialize(body : Body?, verts : Array(Vect)|Slice(Vect), transform : Transform = Transform::IDENTITY, radius : Number = 0)
       @shape = uninitialized LibCP::PolyShape
       LibCP.poly_shape_init(pointerof(@shape), body, verts.size, verts, transform, radius)
       LibCP.shape_set_user_data(self, self.as(Void*))
     end
-    def initialize(body : Body, verts : Array(Vert)|Slice(Vert), radius : Number)
+    def initialize(body : Body?, verts : Array(Vect)|Slice(Vect), radius : Number)
       @shape = uninitialized LibCP::PolyShape
       LibCP.poly_shape_init_raw(pointerof(@shape), body, verts.size, verts, radius)
       LibCP.shape_set_user_data(self, self.as(Void*))
@@ -215,8 +219,8 @@ module CP
       LibCP.poly_shape_get_count(self)
     end
 
-    def [](index : Int32) : Vect
-      LibCP.poly_shape_get_vect(self, index)
+    def unsafe_at(index : Int32) : Vect
+      LibCP.poly_shape_get_vert(self, index)
     end
 
     def radius : Float64
@@ -225,14 +229,14 @@ module CP
   end
 
   class BoxShape < PolyShape
-    def initialize(body : Body, width : Number, height : Number, radius : Number)
+    def initialize(body : Body?, width : Number, height : Number, radius : Number = 0)
       @shape = uninitialized LibCP::PolyShape
       LibCP.box_shape_init(pointerof(@shape), body, width, height, radius)
       LibCP.shape_set_user_data(self, self.as(Void*))
     end
-    def initialize(body : Body, box : BB, radius : Number)
+    def initialize(body : Body?, box : BB, radius : Number = 0)
       @shape = uninitialized LibCP::PolyShape
-      LibCP.box_shape_init(pointerof(@shape), body, box, radius)
+      LibCP.box_shape_init2(pointerof(@shape), body, box, radius)
       LibCP.shape_set_user_data(self, self.as(Void*))
     end
   end

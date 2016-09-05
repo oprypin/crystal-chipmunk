@@ -57,7 +57,7 @@ class LogoSmash < Demo
     body.position = CP.v(-1000, -10)
     body.velocity = CP.v(400, 0)
 
-    shape = space.add CP::CircleShape.new(body, 8.0, CP.v(0, 0))
+    shape = space.add CP::CircleShape.new(body, 8.0)
     shape.elasticity = 0.0
     shape.friction = 0.0
     shape.filter = NOGRAB_FILTER
@@ -67,7 +67,7 @@ class LogoSmash < Demo
     body = @space.add CP::Body.new(1.0, Float64::MAX)
     body.position = CP.v(x, y)
 
-    shape = @space.add CP::CircleShape.new(body, 0.95, CP.v(0, 0))
+    shape = @space.add CP::CircleShape.new(body, 0.95)
     shape.elasticity = 0.0
     shape.friction = 0.0
 

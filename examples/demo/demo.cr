@@ -62,7 +62,7 @@ class Demo
     @running = true
 
     while @running
-      @keyboard = CP.v(0.0, 0.0)
+      @keyboard = CP.vzero
       @keyboard.x += 1.0 if SF::Keyboard.key_pressed?(SF::Keyboard::Right)
       @keyboard.x -= 1.0 if SF::Keyboard.key_pressed?(SF::Keyboard::Left)
       @keyboard.y += 1.0 if SF::Keyboard.key_pressed?(SF::Keyboard::Up)
@@ -97,7 +97,7 @@ class Demo
               # Use the closest point on the surface if the click is outside of the shape.
               nearest = (info.distance > 0.0 ? info.point : @mouse)
 
-              mouse_joint = CP::PivotJoint.new(@mouse_body, body, CP.v(0, 0), body.world_to_local(nearest))
+              mouse_joint = CP::PivotJoint.new(@mouse_body, body, CP.vzero, body.world_to_local(nearest))
               mouse_joint.max_force = 50000.0
               mouse_joint.error_bias = (1.0 - 0.15)**60.0
               @space.add(@mouse_joint = mouse_joint)

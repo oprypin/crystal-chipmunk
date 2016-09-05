@@ -20,6 +20,8 @@
 # SOFTWARE.
 
 
+require "./util"
+
 module CP
   @[Extern]
   struct ContactPointSetItem
@@ -49,10 +51,10 @@ module CP
 
   struct Arbiter
     # :nodoc:
-    private def initialize(@ptr : LibCP::Arbiter*)
+    def initialize(@ptr : LibCP::Arbiter*)
     end
     # :nodoc:
-    def self.from(ptr : LibCP::Arbiter*)
+    def self.[](ptr : LibCP::Arbiter*) : self
       self.new(ptr)
     end
     # :nodoc:
@@ -88,11 +90,11 @@ module CP
 
     def shapes : {Shape, Shape}
       LibCP.arbiter_get_shapes(self, out a, out b)
-      {Shape.from(a), Shape.from(b)}
+      {Shape[a], Shape[b]}
     end
     def bodies : {Body, Body}
       LibCP.arbiter_get_bodies(self, out a, out b)
-      {Body.from(a), Body.from(b)}
+      {Body[a], Body[b]}
     end
 
     def contact_point_set : ContactPointSet
@@ -155,6 +157,53 @@ module CP
     end
     def call_wildcard_separate_b(space : Space)
       arbiter_call_wildcard_separate_b(self, space)
+    end
+  end
+
+  class CollisionHandler
+    property type_a = CollisionType.new(0)
+    property type_b = CollisionType.new(0)
+
+    @@begin : LibCP::CollisionBeginFunc =
+    ->(arbiter : LibCP::Arbiter*, space : LibCP::Space*, data : Void*) {
+      data.as(self).begin(Arbiter[arbiter], Space[space]).as Bool
+    }
+    @@pre_solve : LibCP::CollisionPreSolveFunc =
+    ->(arbiter : LibCP::Arbiter*, space : LibCP::Space*, data : Void*) {
+      data.as(self).pre_solve(Arbiter[arbiter], Space[space]).as Bool
+    }
+    @@post_solve : LibCP::CollisionPostSolveFunc =
+    ->(arbiter : LibCP::Arbiter*, space : LibCP::Space*, data : Void*) {
+      data.as(self).post_solve(Arbiter[arbiter], Space[space])
+      nil
+    }
+    @@separate : LibCP::CollisionSeparateFunc =
+    ->(arbiter : LibCP::Arbiter*, space : LibCP::Space*, data : Void*) {
+      data.as(self).separate(Arbiter[arbiter], Space[space])
+      nil
+    }
+
+    # :nodoc:
+    def prime!(this : LibCP::CollisionHandler*) : self
+      @type_a = this.value.type_a
+      @type_b = this.value.type_b
+      _cp_if_overridden :begin { this.value.begin_func = @@begin }
+      _cp_if_overridden :pre_solve { this.value.pre_solve_func = @@pre_solve }
+      _cp_if_overridden :post_solve { this.value.post_solve_func = @@post_solve }
+      _cp_if_overridden :separate { this.value.separate_func = @@separate }
+      this.value.user_data = self.as(Void*)
+      self
+    end
+
+    def begin(arbiter : Arbiter, space : Space) : Bool
+      true
+    end
+    def pre_solve(arbiter : Arbiter, space : Space) : Bool
+      true
+    end
+    def post_solve(arbiter : Arbiter, space : Space)
+    end
+    def separate(arbiter : Arbiter, space : Space)
     end
   end
 end

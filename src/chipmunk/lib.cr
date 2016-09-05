@@ -826,6 +826,7 @@ lib LibCP
 
   fun space_use_spatial_hash = cpSpaceUseSpatialHash(space : Space*, dim : Float64, count : Int32)
 
+  @[Raises]
   fun space_step = cpSpaceStep(space : Space*, dt : Float64)
 
   alias SpaceDebugDrawCircleImpl = (CP::Vect, Float64, Float64, CP::Space::DebugDraw::Color, CP::Space::DebugDraw::Color, DataPointer) ->

@@ -1,0 +1,15 @@
+name: chipmunk
+version: 0.1.0
+
+authors:
+  - Oleh Prypin <oleh@pryp.in>
+
+description: |
+  Crystal bindings to Chipmunk, a 2D rigid body physics library for games
+
+development_dependencies:
+  spec_assert:
+    github: blaxpirit/spec-assert
+    branch: master
+
+license: MIT
