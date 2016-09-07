@@ -202,7 +202,6 @@ describe Space do
 
     hit = s.point_query_nearest(v(23, 0))
     assert hit
-    hit = hit.not_nil! # TODO
     assert hit.shape == s1
     assert hit.point == v(29, 0)
     assert hit.distance == -6
@@ -213,7 +212,6 @@ describe Space do
 
     hit = s.point_query_nearest(v(30, 0), 10)
     assert hit
-    hit = hit.not_nil! # TODO
     assert hit.shape == s1
     assert hit.point == v(29, 0)
     assert hit.distance == 1
@@ -278,7 +276,6 @@ describe Space do
     s.reindex c
     hit = s.point_query_nearest(v(-50, -55))
     assert hit
-    hit = hit.not_nil! # TODO
     assert hit.shape == c
   end
 
@@ -379,7 +376,6 @@ describe Space do
 
     hit = s.segment_query_first(v(-13, 0), v(131, 0))
     assert hit
-    hit = hit.not_nil! # TODO
     assert hit.shape == s2
     assert hit.point == v(-10, 0)
     assert hit.normal == v(-1, 0)
@@ -403,105 +399,107 @@ describe Space do
     # assert hits[0].shape == c
   end
 
-  test "collision handler begin" do
-    s = Space.new()
-    b1 = Body.new(1, 1)
-    c1 = CircleShape.new(b1, 10)
-    b2 = Body.new(1, 1)
-    c2 = CircleShape.new(b2, 10)
-    s.add b1, c1, b2, c2
+  describe "add_collision_handler" do
+    test "begin" do
+      s = Space.new()
+      b1 = Body.new(1, 1)
+      c1 = CircleShape.new(b1, 10)
+      b2 = Body.new(1, 1)
+      c2 = CircleShape.new(b2, 10)
+      s.add b1, c1, b2, c2
 
-    h = s.add_collision_handler(0, 0, BeginHandler.new)
-    h.test = 1
+      h = s.add_collision_handler(0, 0, BeginHandler.new)
+      h.test = 1
 
-    10.times do
-      s.step(0.1)
+      10.times do
+        s.step(0.1)
+      end
+
+      assert h.hits == 1
     end
 
-    assert h.hits == 1
-  end
+    test "pre_solve" do
+      s = Space.new()
+      b1 = Body.new(1, 1)
+      c1 = CircleShape.new(b1, 10)
+      c1.collision_type = 1
+      b2 = Body.new(1, 1)
+      c2 = CircleShape.new(b2, 10)
+      s.add b1, c1, b2, c2
 
-  test "collision handler pre_solve" do
-    s = Space.new()
-    b1 = Body.new(1, 1)
-    c1 = CircleShape.new(b1, 10)
-    c1.collision_type = 1
-    b2 = Body.new(1, 1)
-    c2 = CircleShape.new(b2, 10)
-    s.add b1, c1, b2, c2
-
-    h = s.add_collision_handler(0, 1, PreSolveHandler.new)
-    s.step(0.1)
-    assert h.shapes[1] == c1
-    assert h.shapes[0] == c2
-    assert h.space == s
-  end
-
-  test "collision handler post_solve" do
-    s = TestSpace.new()
-
-    h = s.add_collision_handler(0, 0, PostSolveHandler.new)
-    s.step(0.1)
-    assert h.hits == 1
-  end
-
-  test "collision handler separate" do
-    s = Space.new()
-
-    b1 = Body.new(1, 1)
-    c1 = CircleShape.new(b1, 10)
-    b1.position = v(9, 11)
-
-    b2 = Body.new_static()
-    c2 = CircleShape.new(b2, 10)
-    b2.position = v(0, 0)
-
-    s.add b1, c1, b2, c2
-    s.gravity = v(0, -100)
-
-    h = s.add_collision_handler(0, 0, SeparateHandler.new)
-
-    10.times do
+      h = s.add_collision_handler(0, 1, PreSolveHandler.new)
       s.step(0.1)
+      assert h.shapes[1] == c1
+      assert h.shapes[0] == c2
+      assert h.space == s
     end
 
-    assert h.hits == 1
-  end
+    test "post_solve" do
+      s = TestSpace.new()
 
-  test "wildcard collision_handler" do
-    s = Space.new()
-    b1 = Body.new(1, 1)
-    c1 = CircleShape.new(b1, 10)
-    b2 = Body.new(1, 1)
-    c2 = CircleShape.new(b2, 10)
-    s.add b1, c1, b2, c2
+      h = s.add_collision_handler(0, 0, PostSolveHandler.new)
+      s.step(0.1)
+      assert h.hits == 1
+    end
 
-    h = s.add_collision_handler(1, PreSolveHandler.new)
-    s.step(0.1)
-    assert h.space == nil
+    test "separate" do
+      s = Space.new()
 
-    c1.collision_type = 1
-    s.step(0.1)
-    assert h.shapes[0] == c1
-    assert h.shapes[1] == c2
-    assert h.space == s
-  end
+      b1 = Body.new(1, 1)
+      c1 = CircleShape.new(b1, 10)
+      b1.position = v(9, 11)
 
-  test "default collision handler" do
-    s = Space.new()
-    b1 = Body.new(1, 1)
-    c1 = CircleShape.new(b1, 10)
-    c1.collision_type = 1
-    b2 = Body.new(1, 1)
-    c2 = CircleShape.new(b2, 10)
-    c2.collision_type = 2
-    s.add b1, c1, b2, c2
+      b2 = Body.new_static()
+      c2 = CircleShape.new(b2, 10)
+      b2.position = v(0, 0)
 
-    h = s.add_collision_handler(PreSolveHandler.new)
-    s.step(0.1)
-    assert h.shapes[1] == c1
-    assert h.shapes[0] == c2
-    assert h.space == s
+      s.add b1, c1, b2, c2
+      s.gravity = v(0, -100)
+
+      h = s.add_collision_handler(0, 0, SeparateHandler.new)
+
+      10.times do
+        s.step(0.1)
+      end
+
+      assert h.hits == 1
+    end
+
+    test "wildcard" do
+      s = Space.new()
+      b1 = Body.new(1, 1)
+      c1 = CircleShape.new(b1, 10)
+      b2 = Body.new(1, 1)
+      c2 = CircleShape.new(b2, 10)
+      s.add b1, c1, b2, c2
+
+      h = s.add_collision_handler(1, PreSolveHandler.new)
+      s.step(0.1)
+      assert h.space == nil
+
+      c1.collision_type = 1
+      s.step(0.1)
+      assert h.shapes[0] == c1
+      assert h.shapes[1] == c2
+      assert h.space == s
+    end
+
+    test "default" do
+      s = Space.new()
+      b1 = Body.new(1, 1)
+      c1 = CircleShape.new(b1, 10)
+      c1.collision_type = 1
+      b2 = Body.new(1, 1)
+      c2 = CircleShape.new(b2, 10)
+      c2.collision_type = 2
+      s.add b1, c1, b2, c2
+
+      h = s.add_collision_handler(PreSolveHandler.new)
+      s.step(0.1)
+      assert h.shapes[1] == c1
+      assert h.shapes[0] == c2
+      assert h.space == s
+    end
   end
 end
 
