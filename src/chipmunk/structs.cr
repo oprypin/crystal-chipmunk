@@ -408,14 +408,14 @@ module CP
     property alpha : Float64
 
     def initialize(shape : Shape?, @point : Vect, @normal : Vect, @alpha : Float64)
-      @shape = shape ? shape.to_unsafe : Pointer(Shape).null
+      @shape = shape ? shape.to_unsafe : Pointer(LibCP::Shape).null
     end
 
     def shape : Shape?
       Shape[@shape]?
     end
     def shape=(shape : Shape?)
-      @shape = shape ? shape.to_unsafe : Pointer(Shape).null
+      @shape = shape ? shape.to_unsafe : Pointer(LibCP::Shape).null
     end
   end
 

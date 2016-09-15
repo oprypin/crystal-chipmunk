@@ -183,36 +183,12 @@ module CP
       LibCP.space_contains_constraint(self, constraint)
     end
 
-#     gather point_query : PointQueryInfo,
-#     def point_query(point : Vect, max_distance : Number = 0, filter : ShapeFilter = ShapeFilter::ALL, &block : PointQueryInfo ->)
-#       # Can't use the proper interface because https://github.com/crystal-lang/crystal/issues/605
-#       context = LibCP::PointQueryContext.new(point: point, max_distance: max_distance, filter: filter, func: ->(s: LibCP::Shape*, p: Vect, m: Float64, g: Vect, d: Void*) { })
-#       bb = BB.new_for_circle(point, {max_distance, 0.0}.max)
-#
-#       LibCP.space_lock(self)
-#       {to_unsafe.value.dynamic_shapes, to_unsafe.value.static_shapes}.each do |index|
-#         index.value.klass.value.query.call(index, pointerof(context).as(Void*), bb, (->(context : Void*, shape : Void*, id : CollisionID, data : Void*) {
-#           context = context.as(LibCP::PointQueryContext*)
-#           shape = shape.as(LibCP::Shape*)
-#           a = shape.value.filter
-#           b = context.value.filter
-#
-#           unless (
-#             a.group != 0 && a.group == b.group ||
-#             (a.categories & b.mask) == 0 || (b.categories & a.mask) == 0
-#           )
-#             LibCP.shape_point_query(shape, context.value.point, out info)
-#
-#             if info.shape && info.distance < context.value.max_distance
-#               info.shape = shape
-#               p context.value.func
-#             end
-#           end
-#           id
-#         }), pointerof(block).as(Void*))
-#       end
-#       LibCP.space_unlock(self, true)
-#     end
+    _cp_gather point_query : PointQueryInfo,
+    def point_query(point : Vect, max_distance : Number = 0, filter : ShapeFilter = ShapeFilter::ALL, &block : PointQueryInfo ->)
+      LibCP.space_point_query(self, point, max_distance, filter, ->(shape, point, distance, gradient, data) {
+        data.as(typeof(block)*).value.call(PointQueryInfo.new(Shape[shape], point, distance, gradient))
+      }, pointerof(block))
+    end
 
     def point_query_nearest(point : Vect, max_distance : Number = 0, filter : ShapeFilter = ShapeFilter::ALL) : PointQueryInfo?
       if (shape = LibCP.space_point_query_nearest(self, point, max_distance, filter, out info))
@@ -221,10 +197,15 @@ module CP
       end
     end
 
-    #def segment_query
+    _cp_gather segment_query : SegmentQueryInfo,
+    def segment_query(start : Vect, end end_ : Vect, radius : Number = 0, filter : ShapeFilter = ShapeFilter::ALL, &block : SegmentQueryInfo ->)
+      LibCP.space_segment_query(self, start, end_, radius, filter, ->(shape, point, normal, alpha, data) {
+        data.as(typeof(block)*).value.call(SegmentQueryInfo.new(Shape[shape], point, normal, alpha))
+      }, pointerof(block))
+    end
 
-    def segment_query_first(start : Vect, end : Vect, radius : Number = 0, filter : ShapeFilter = ShapeFilter::ALL) : SegmentQueryInfo?
-      if LibCP.space_segment_query_first(self, start, end, radius, filter, out info)
+    def segment_query_first(start : Vect, end end_ : Vect, radius : Number = 0, filter : ShapeFilter = ShapeFilter::ALL) : SegmentQueryInfo?
+      if LibCP.space_segment_query_first(self, start, end_, radius, filter, out info)
         info
       end
     end

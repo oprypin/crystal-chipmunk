@@ -159,7 +159,7 @@ describe Space do
     end
   end
 
-  pending "point_query" do
+  test "point_query" do
     s = Space.new()
     b1 = Body.new(1, 1)
     b1.position = v(19, 0)
@@ -260,8 +260,8 @@ describe Space do
     hit = s.point_query_nearest(v(-50, -50))
     assert hit && hit.shape == c
 
-    # hits = s.point_query(v(-50, -55), 0) # TODO
-    # assert hits[0].shape == c
+    hits = s.point_query(v(-50, -55), 0)
+    assert hits[0].shape == c
   end
 
   test "reindex shape" do
@@ -335,7 +335,7 @@ describe Space do
     assert b1.position.y > 10
   end
 
-  pending "segment_query" do
+  test "segment_query" do
     s = Space.new()
 
     b1 = Body.new(1, 1)
@@ -395,8 +395,8 @@ describe Space do
     hit = s.segment_query_first(v(-70, -50), v(-30, -50))
     assert hit && hit.shape == c
 
-    # hits = s.segment_query(v(-70, -50), v(-30, -50)) # TODO
-    # assert hits[0].shape == c
+    hits = s.segment_query(v(-70, -50), v(-30, -50))
+    assert hits[0].shape == c
   end
 
   describe "add_collision_handler" do
