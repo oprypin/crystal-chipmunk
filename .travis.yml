@@ -1,0 +1,9 @@
+language: crystal
+before_install:
+  - |
+    curl -L "https://chipmunk-physics.net/release/ChipmunkLatest.tgz" | tar -xz
+    pushd Chipmunk*
+    sed -i '/CMP0042/d' CMakeLists.txt # https://github.com/slembcke/Chipmunk2D/issues/112
+    cmake -DBUILD_DEMOS=OFF . && make
+    export {LD_,}LIBRARY_PATH="$PWD/src"
+    popd
