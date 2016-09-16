@@ -157,39 +157,33 @@ describe Body do
     assert b.kinetic_energy == 100
   end
 
-  pending "position function" do
+  test "update_position" do
     s = Space.new()
-    b = s.add Body.new(1, 1)
+    b = s.add PositionBody.new(1, 1)
 
-    body.update_position do |dt|
-      body.position += v(0, dt)
-    end
     s.step(10)
     assert b.position == v(0, 10)
     s.step(1)
     s.step(1)
     assert b.position.y == 12
 
-    body.update_position nil
+    b.default = true
     s.step(1)
     assert b.position.y == 12
   end
 
-  pending "velocity function" do
+  test "update_velocity" do
     s = Space.new()
-    b = s.add Body.new(1, 1)
-
-    body.update_velocity do |gravity, damping, dt|
-      body.velocity += 5 * gravity
-    end
     s.gravity = v(1, 0)
+    b = s.add VelocityBody.new(1, 1)
+
     s.step(10)
     assert b.velocity.x == 5
     s.step(0.1)
     s.step(0.1)
     assert b.velocity.x == 15
 
-    b.update_velocity nil
+    b.default = true
     s.step(1)
     assert b.velocity.x == 16
   end
@@ -232,5 +226,29 @@ describe Body do
     assert b1.shapes.includes? s1
     assert b1.shapes.includes? s2
     assert !s.static_body.shapes.includes? s1
+  end
+end
+
+class PositionBody < Body
+  setter default = false
+
+  def update_position(dt)
+    if @default
+      super
+    else
+      self.position += v(0, dt)
+    end
+  end
+end
+
+class VelocityBody < Body
+  setter default = false
+
+  def update_velocity(gravity, damping, dt)
+    if @default
+      super
+    else
+      self.velocity += gravity * 5
+    end
   end
 end

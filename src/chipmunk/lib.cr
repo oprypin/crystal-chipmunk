@@ -210,9 +210,9 @@ lib LibCP
 
   fun arbiter_call_wildcard_separate_b = cpArbiterCallWildcardSeparateB(arb : Arbiter*, space : Space*)
 
-  alias BodyVelocityFunc = (Body, CP::Vect, Float64, Float64) ->
+  alias BodyVelocityFunc = (Body*, CP::Vect, Float64, Float64) ->
 
-  alias BodyPositionFunc = (Body, Float64) ->
+  alias BodyPositionFunc = (Body*, Float64) ->
 
   fun body_alloc = cpBodyAlloc() : Body*
 

@@ -32,10 +32,21 @@ module CP
     KINEMATIC = Type::KINEMATIC
     STATIC = Type::STATIC
 
+    @@update_velocity : LibCP::BodyVelocityFunc = ->(body : LibCP::Body*, gravity : Vect, damping : Float64, dt : Float64) {
+      Body[body].update_velocity(gravity, damping, dt)
+      nil
+    }
+    @@update_position : LibCP::BodyPositionFunc = ->(body : LibCP::Body*, dt : Float64) {
+      Body[body].update_position(dt)
+      nil
+    }
+
     def initialize(mass : Number = 0, moment : Number = 0)
       @body = uninitialized LibCP::Body
       LibCP.body_init(self, mass, moment)
       LibCP.body_set_user_data(self, self.as(Void*))
+      _cp_if_overridden :update_velocity { LibCP.body_set_velocity_update_func(self, @@update_velocity) }
+      _cp_if_overridden :update_position { LibCP.body_set_position_update_func(self, @@update_position) }
     end
 
     def self.new_kinematic() : self
@@ -208,5 +219,12 @@ module CP
         }, pointerof(block))
       end
     {% end %}
+
+    def update_velocity(gravity : Vect, damping : Number, dt : Number)
+      LibCP.body_update_velocity(self, gravity, damping, dt)
+    end
+    def update_position(dt : Number)
+      LibCP.body_update_position(self, dt)
+    end
   end
 end
