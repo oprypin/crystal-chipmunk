@@ -1,7 +1,5 @@
 require "./chipmunk"
-{% if true %}
-#require "crsfml"
-{% end %}
+require "crsfml"
 
 private macro v(v)
   { {{v}}.x, {{v}}.y }

@@ -386,14 +386,14 @@ module CP
     property gradient : Vect
 
     def initialize(shape : Shape, @point : Vect, @distance : Float64, @gradient : Vect)
-      @shape = shape ? shape.to_unsafe : Pointer(LibCP::Shape).null
+      @shape = shape.to_unsafe
     end
 
-    def shape : Shape?
-      Shape[@shape]?
+    def shape : Shape
+      Shape[@shape]
     end
-    def shape=(shape : Shape?)
-      @shape = shape ? shape.to_unsafe : Pointer(LibCP::Shape).null
+    def shape=(shape : Shape)
+      @shape = shape.to_unsafe
     end
     # :nodoc:
     def shape=(@shape : LibCP::Shape*)
@@ -407,15 +407,15 @@ module CP
     property normal : Vect
     property alpha : Float64
 
-    def initialize(shape : Shape?, @point : Vect, @normal : Vect, @alpha : Float64)
-      @shape = shape ? shape.to_unsafe : Pointer(LibCP::Shape).null
+    def initialize(shape : Shape, @point : Vect, @normal : Vect, @alpha : Float64)
+      @shape = shape.to_unsafe
     end
 
-    def shape : Shape?
-      Shape[@shape]?
+    def shape : Shape
+      Shape[@shape]
     end
-    def shape=(shape : Shape?)
-      @shape = shape ? shape.to_unsafe : Pointer(LibCP::Shape).null
+    def shape=(shape : Shape)
+      @shape = shape.to_unsafe
     end
   end
 

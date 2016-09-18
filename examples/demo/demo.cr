@@ -91,16 +91,17 @@ class Demo
             # give the mouse click a little radius to make it easier to click small shapes
             radius = 5.0
 
-            info = @space.point_query_nearest(@mouse, radius, GRAB_FILTER)
+            if (info = @space.point_query_nearest(@mouse, radius, GRAB_FILTER))
+              shape = info.shape
+              if (body = shape.body) && body.mass < Float64::MAX
+                # Use the closest point on the surface if the click is outside of the shape.
+                nearest = (info.distance > 0.0 ? info.point : @mouse)
 
-            if (shape = info.shape) && (body = shape.body) && body.mass < Float64::MAX
-              # Use the closest point on the surface if the click is outside of the shape.
-              nearest = (info.distance > 0.0 ? info.point : @mouse)
-
-              mouse_joint = CP::PivotJoint.new(@mouse_body, body, CP.vzero, body.world_to_local(nearest))
-              mouse_joint.max_force = 50000.0
-              mouse_joint.error_bias = (1.0 - 0.15)**60.0
-              @space.add(@mouse_joint = mouse_joint)
+                mouse_joint = CP::PivotJoint.new(@mouse_body, body, CP.vzero, body.world_to_local(nearest))
+                mouse_joint.max_force = 50000.0
+                mouse_joint.error_bias = (1.0 - 0.15)**60.0
+                @space.add(@mouse_joint = mouse_joint)
+              end
             end
           end
         when SF::Event::MouseButtonReleased
