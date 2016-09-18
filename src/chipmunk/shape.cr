@@ -49,9 +49,10 @@ module CP
       info
     end
 
-    def segment_query(a : Vect, b : Vect, radius : Number = 0) : SegmentQueryInfo
-      LibCP.shape_segment_query(self, a, b, radius, out info)
-      info
+    def segment_query(a : Vect, b : Vect, radius : Number = 0) : SegmentQueryInfo?
+      if LibCP.shape_segment_query(self, a, b, radius, out info)
+        info
+      end
     end
 
     def collide(b : Shape) : ContactPointSet

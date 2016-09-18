@@ -26,15 +26,14 @@ describe Shape do
     c.cache_bb()
 
     info = c.segment_query(v(10, -50), v(10, 50))
-    assert info.shape == nil
-    assert info.point == v(10, 50)
-    assert info.normal == v(0, 0)
-    assert info.alpha == 1.0
+    assert !info
 
     info = c.segment_query(v(10, -50), v(10, 50), 6)
+    assert info
     assert info.shape == c
 
     info = c.segment_query(v(0, -50), v(0, 50))
+    assert info
     assert info.shape == c
     assert info.point.x.close? 0
     assert info.point.y.close? -5

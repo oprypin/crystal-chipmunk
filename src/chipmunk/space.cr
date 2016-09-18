@@ -191,8 +191,7 @@ module CP
     end
 
     def point_query_nearest(point : Vect, max_distance : Number = 0, filter : ShapeFilter = ShapeFilter::ALL) : PointQueryInfo?
-      if (shape = LibCP.space_point_query_nearest(self, point, max_distance, filter, out info))
-        info.shape = shape
+      if LibCP.space_point_query_nearest(self, point, max_distance, filter, out info)
         info
       end
     end
