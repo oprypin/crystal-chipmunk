@@ -20,7 +20,7 @@
 # SOFTWARE.
 
 
-require "./demo"
+require "../demo"
 
 class PyramidTopple < Demo
   TITLE = "Pyramid Topple"
@@ -84,4 +84,4 @@ class PyramidTopple < Demo
 end
 
 
-require "./demo/run"
+require "../demo/run"

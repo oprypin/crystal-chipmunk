@@ -1,4 +1,4 @@
-require "./chipmunk"
+require "chipmunk"
 
 gravity = CP.v(0, -100)
 

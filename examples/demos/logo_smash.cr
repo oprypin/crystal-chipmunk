@@ -20,7 +20,7 @@
 # SOFTWARE.
 
 
-require "./demo"
+require "../demo"
 
 class LogoSmash < Demo
   TITLE = "Logo Smash"
@@ -97,4 +97,4 @@ def read_pbm(filename)
 end
 
 
-require "./demo/run"
+require "../demo/run"

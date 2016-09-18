@@ -1,4 +1,4 @@
-require "chipmunk/chipmunk_crsfml.cr"
+require "chipmunk/chipmunk_crsfml"
 
 
 window = SF::RenderWindow.new(

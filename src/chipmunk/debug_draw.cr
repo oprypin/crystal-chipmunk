@@ -198,31 +198,36 @@ module CP
         elsif body.@body.sleeping.idle_time > shape.space.not_nil!.sleep_time_threshold
           Color.gray(0.66)
         else
-          val = shape.to_unsafe.value.hashid.to_u32
+          hash = shape.to_unsafe.value.hashid
 
-          # scramble the bits up using Robert Jenkins' 32 bit integer hash function
-          val = (val + 0x7ed55d16_u32) + (val << 12)
-          val = (val ^ 0xc761c23c_u32) ^ (val >> 19)
-          val = (val + 0x165667b1_u32) + (val << 5)
-          val = (val + 0xd3a2646c_u32) ^ (val << 9)
-          val = (val + 0xfd7046c5_u32) + (val << 3)
-          val = (val ^ 0xb55a4f09_u32) ^ (val >> 16)
+          DebugDraw.color_for_hash(hash, intensity: body.type.static? ? 0.15 : 0.75)
+        end
+      end
 
-          r = (val >> 0) & 0xFF
-          g = (val >> 8) & 0xFF
-          b = (val >> 16) & 0xFF
+      def self.color_for_hash(hash : Int, intensity : Number) : Color
+        val = hash.to_u32
 
-          max = {r, g, b}.max
-          min = {r, g, b}.min
-          intensity = body.type.static? ? 0.15 : 0.75
+        # scramble the bits up using Robert Jenkins' 32 bit integer hash function
+        val = (val + 0x7ed55d16_u32) + (val << 12)
+        val = (val ^ 0xc761c23c_u32) ^ (val >> 19)
+        val = (val + 0x165667b1_u32) + (val << 5)
+        val = (val + 0xd3a2646c_u32) ^ (val << 9)
+        val = (val + 0xfd7046c5_u32) + (val << 3)
+        val = (val ^ 0xb55a4f09_u32) ^ (val >> 16)
 
-          # Saturate and scale the color
-          if min == max
-            Color.new(intensity, 0.0, 0.0)
-          else
-            coef = intensity / (max - min)
-            Color.new((r - min) * coef, (g - min) * coef, (b - min) * coef)
-          end
+        r = (val >> 0) & 0xFF
+        g = (val >> 8) & 0xFF
+        b = (val >> 16) & 0xFF
+
+        max = {r, g, b}.max
+        min = {r, g, b}.min
+
+        # Saturate and scale the color
+        if min == max
+          Color.new(intensity, 0.0, 0.0)
+        else
+          coef = intensity / (max - min)
+          Color.new((r - min) * coef, (g - min) * coef, (b - min) * coef)
         end
       end
     end

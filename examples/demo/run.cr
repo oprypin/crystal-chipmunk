@@ -7,6 +7,7 @@ require "./demo"
       settings: SF::ContextSettings.new(depth: 24, antialiasing: 8)
     )
     window.vertical_sync_enabled = true
+    window.title = {{cls}}::TITLE
 
     {{cls}}.new(window).run
   {% end %}

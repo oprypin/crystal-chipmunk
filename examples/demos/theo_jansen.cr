@@ -20,7 +20,7 @@
 # SOFTWARE.
 
 
-require "./demo"
+require "../demo"
 
 class TheoJansen < Demo
   TITLE = "Theo Jansen Machine"
@@ -126,4 +126,4 @@ class TheoJansen < Demo
 end
 
 
-require "./demo/run"
+require "../demo/run"

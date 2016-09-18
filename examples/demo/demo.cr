@@ -32,11 +32,7 @@ class Demo
   GRAB_FILTER = CP::ShapeFilter.new(CP::NO_GROUP, GRABBABLE_MASK, GRABBABLE_MASK)
   NOGRAB_FILTER = CP::ShapeFilter.new(CP::NO_GROUP, ~GRABBABLE_MASK, ~GRABBABLE_MASK)
 
-  # BOUNDS = CP::BB.new(-320, -240, 320, 240)
-
   def initialize(@window : SF::RenderWindow)
-    @window.title = {% begin %}{{@type.id}}::TITLE{% end %}
-
     @draw = SFMLDebugDraw.new(window)
 
     # @paused = false
@@ -51,6 +47,8 @@ class Demo
 
     @keyboard = CP::Vect.new(0.0, 0.0)
     @mouse = CP::Vect.new(0.0, 0.0)
+
+    rescale
   end
   @mouse_joint : CP::PivotJoint?
 
@@ -58,7 +56,18 @@ class Demo
 
   forward_missing_to @draw
 
+  def rescale
+    scale = {@window.size.x / (640 + 10.0), @window.size.y / (480 + 10.0)}.min
+    @draw.states = SF::RenderStates.new(
+      SF::Transform.new.translate(@window.view.size / 2).scale(scale, -scale)
+    )
+  end
+
   def run
+    @runtime_clock.restart
+    @sim_time = 0f32
+
+    rescale
     @running = true
 
     while @running
@@ -74,7 +83,6 @@ class Demo
       while event = @window.poll_event
         case event
         when SF::Event::Closed
-          @window.close()
           @running = false
         when SF::Event::KeyPressed
           if event.code == SF::Keyboard::Escape
@@ -82,10 +90,7 @@ class Demo
           end
         when SF::Event::Resized
           @window.view = SF::View.new(SF.float_rect(0, 0, event.width, event.height))
-          scale = {event.width / (640 + 10.0), event.height / (480 + 10.0)}.min
-          @draw.states = SF::RenderStates.new(
-            SF::Transform.new.translate(@window.view.size / 2).scale(scale, -scale)
-          )
+          rescale
         when SF::Event::MouseButtonPressed
           if event.button == SF::Mouse::Left
             # give the mouse click a little radius to make it easier to click small shapes
@@ -122,7 +127,9 @@ class Demo
         @sim_time += 1.0/{% begin %}{{@type.id}}::SIM_FPS{% end %}
       end
 
+      @window.clear(SF.color(52, 62, 72))
       draw()
+      @window.display()
     end
   end
 
@@ -131,8 +138,6 @@ class Demo
   end
 
   def draw
-    @window.clear(SF.color(52, 62, 72))
     @draw.draw @space
-    @window.display()
   end
 end
