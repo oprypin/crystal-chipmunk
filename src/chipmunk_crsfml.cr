@@ -17,10 +17,9 @@ class SFMLDebugDraw < CP::Space::DebugDraw
   def initialize(@target : SF::RenderTarget, @states : SF::RenderStates = SF::RenderStates::Default)
     super()
 
-    @circle = SF::CircleShape.new(15.0)
-    @fat = RoundEndedLine.new
+    @circle = SF::CircleShape.new
     @line = SF::VertexArray.new(SF::Lines, 2)
-    @polygon = SF::ConvexShape.new
+    @polygon = RoundedPolygon.new
     @dot = SF::CircleShape.new
 
     @scale = 1f32
@@ -38,7 +37,6 @@ class SFMLDebugDraw < CP::Space::DebugDraw
     scale = @states.transform.transform_rect(SF.float_rect(0, 0, 1, 1))
     @scale = -2 / (scale.width + scale.height)
     @circle.outline_thickness = @scale
-    @fat.outline_thickness = @scale
     @polygon.outline_thickness = @scale
   end
 
@@ -61,20 +59,15 @@ class SFMLDebugDraw < CP::Space::DebugDraw
   end
 
   def draw_fat_segment(a : CP::Vect, b : CP::Vect, radius : Float64, outline_color : Color, fill_color : Color)
-    @fat.a = v(a)
-    @fat.b = v(b)
-    @fat.radius = radius
-    @fat.outline_color = c(outline_color)
-    @fat.fill_color = c(fill_color)
+    @polygon.assign({a, b}, radius)
+    @polygon.outline_color = c(outline_color)
+    @polygon.fill_color = c(fill_color)
 
-    @target.draw @fat, @states
+    @target.draw @polygon, @states
   end
 
   def draw_polygon(verts : Slice(CP::Vect), radius : Float64, outline_color : Color, fill_color : Color)
-    @polygon.point_count = verts.size
-    verts.each_with_index do |vert, i|
-      @polygon[i] = v(vert)
-    end
+    @polygon.assign(verts, radius)
     @polygon.outline_color = c(outline_color)
     @polygon.fill_color = c(fill_color)
 
@@ -91,54 +84,45 @@ class SFMLDebugDraw < CP::Space::DebugDraw
     @target.draw @dot, @states
   end
 
-  class RoundEndedLine < SF::Shape
-    # Class written by Foaly
-    # https://github.com/SFML/SFML/wiki/Source:-Round-Ended-Lines
-
-    def initialize(a = SF.vector2f(0, 0), b = SF.vector2f(0, 0), radius : Number = 0.5)
+  class RoundedPolygon < SF::Shape
+    def initialize
       super()
 
-      @a = SF.vector2f(a[0], a[1])
-      @b = SF.vector2f(b[0], b[1])
-      @radius = radius.to_f32
-      update()
+      @result = [] of SF::Vector2f
     end
 
-    getter a : SF::Vector2f
-    def a=(a)
-      @a = SF.vector2f(a[0], a[1])
-      update()
-    end
+    def assign(points, radius : Number)
+      @result.clear
 
-    getter b : SF::Vector2f
-    def b=(b)
-      @b = SF.vector2f(b[0], b[1])
-      update()
-    end
+      unless points.size < 2
+        p1 = points[points.size - 1]
+        a1 = p1 - points[points.size - 2]
+        a1 = Math.atan2(-a1.x, a1.y)
 
-    getter radius : Float32
-    def radius=(radius : Number)
-      @radius = radius.to_f32
+        points.each do |p2|
+          a2 = p2 - p1
+          a2 = Math.atan2(-a2.x, a2.y)  # normal angle
+
+          a2 += Math::PI * 2 if a2 < a1
+          steps = (radius == 0 ? 1 : ((a2 - a1) * 3).round.to_i)
+          (0..steps).each do |i|
+            a = a2 * i / steps + a1 * (steps - i) / steps
+            @result << SF.vector2f(p1.x + Math.cos(a)*radius, p1.y + Math.sin(a)*radius)
+          end
+
+          a1 = a2
+          p1 = p2
+        end
+      end
+
       update()
     end
 
     def point_count
-      30
+      @result.size
     end
-
     def get_point(index)
-      if index < 15
-        offset = @b
-        flip = 1
-      else
-        offset = @a
-        flip = -1
-        index -= 15
-      end
-
-      start = -Math.atan2(@a.y - @b.y, @b.x - @a.x)
-      angle = index * Math::PI / 14 - Math::PI / 2 + start
-      offset + SF.vector2f(Math.cos(angle), Math.sin(angle)) * @radius * flip
+      @result[index]
     end
   end
 end

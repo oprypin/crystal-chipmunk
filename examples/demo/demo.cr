@@ -32,6 +32,8 @@ class Demo
   GRAB_FILTER = CP::ShapeFilter.new(CP::NO_GROUP, GRABBABLE_MASK, GRABBABLE_MASK)
   NOGRAB_FILTER = CP::ShapeFilter.new(CP::NO_GROUP, ~GRABBABLE_MASK, ~GRABBABLE_MASK)
 
+  alias Color = SFMLDebugDraw::Color
+
   def initialize(@window : SF::RenderWindow)
     @draw = SFMLDebugDraw.new(window)
 
@@ -47,6 +49,8 @@ class Demo
 
     @keyboard = CP::Vect.new(0.0, 0.0)
     @mouse = CP::Vect.new(0.0, 0.0)
+    @right_click = false
+    @right_down = false
 
     rescale
   end
@@ -108,6 +112,8 @@ class Demo
                 @space.add(@mouse_joint = mouse_joint)
               end
             end
+          elsif event.button == SF::Mouse::Right
+            @right_click = true
           end
         when SF::Event::MouseButtonReleased
           if (mouse_joint = @mouse_joint)
@@ -121,13 +127,15 @@ class Demo
       @mouse_body.velocity = (new_point - @mouse_body.@body.p) * 60.0
       @mouse_body.@body.p = new_point
 
+      @window.clear(SF.color(52, 62, 72))
 
       while @sim_time < @runtime_clock.elapsed_time.as_seconds
+        @right_down = SF::Mouse.button_pressed? SF::Mouse::Right
         update()
+        @right_click = false
         @sim_time += 1.0/{% begin %}{{@type.id}}::SIM_FPS{% end %}
       end
 
-      @window.clear(SF.color(52, 62, 72))
       draw()
       @window.display()
     end
@@ -139,5 +147,15 @@ class Demo
 
   def draw
     @draw.draw @space
+  end
+
+  def draw_bb(bb : CP::BB, color : Color)
+    verts = Slice[
+      CP.v(bb.right, bb.bottom),
+      CP.v(bb.right, bb.top),
+      CP.v(bb.left, bb.top),
+      CP.v(bb.left, bb.bottom),
+    ]
+    draw_polygon(verts, 0.0, color, Color.gray(0.0, 0.0))
   end
 end
