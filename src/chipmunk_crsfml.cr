@@ -36,8 +36,8 @@ class SFMLDebugDraw < CP::Space::DebugDraw
   def update
     scale = @states.transform.transform_rect(SF.float_rect(0, 0, 1, 1))
     @scale = -2 / (scale.width + scale.height)
-    @circle.outline_thickness = @scale
-    @polygon.outline_thickness = @scale
+    @circle.outline_thickness = @scale * 1.25
+    @polygon.outline_thickness = @scale * 1.25
   end
 
   def draw_circle(pos : CP::Vect, angle : Float64, radius : Float64, outline_color : Color, fill_color : Color)
@@ -96,15 +96,15 @@ class SFMLDebugDraw < CP::Space::DebugDraw
 
       unless points.size < 2
         p1 = points[points.size - 1]
-        a1 = p1 - points[points.size - 2]
-        a1 = Math.atan2(-a1.x, a1.y)
+        v = p1 - points[points.size - 2]
+        a1 = Math.atan2(-v.x, v.y)
 
         points.each do |p2|
-          a2 = p2 - p1
-          a2 = Math.atan2(-a2.x, a2.y)  # normal angle
+          v = p2 - p1
+          a2 = Math.atan2(-v.x, v.y)  # normal angle
 
           a2 += Math::PI * 2 if a2 < a1
-          steps = (radius == 0 ? 1 : ((a2 - a1) * 3).round.to_i)
+          steps = (radius == 0 ? 1 : ((a2 - a1) * 4).round.to_i)
           (0..steps).each do |i|
             a = a2 * i / steps + a1 * (steps - i) / steps
             @result << SF.vector2f(p1.x + Math.cos(a)*radius, p1.y + Math.sin(a)*radius)

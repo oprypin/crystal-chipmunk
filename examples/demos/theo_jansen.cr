@@ -29,6 +29,8 @@ class TheoJansen < Demo
   def initialize(window)
     super
 
+    @message = "Use the arrow keys to control the machine."
+
     space = @space
     space.iterations = 20
     space.gravity = CP.v(0, -500)

@@ -37,7 +37,6 @@ class Demo
   def initialize(@window : SF::RenderWindow)
     @draw = SFMLDebugDraw.new(window)
 
-    # @paused = false
     @running = false
 
     @runtime_clock = SF::Clock.new
@@ -47,10 +46,14 @@ class Demo
 
     @mouse_body = CP::Body.new_kinematic()
 
+    @text = SF::Text.new("", FONT, 18)
+    @text.position = {10, 10}
+
     @keyboard = CP::Vect.new(0.0, 0.0)
     @mouse = CP::Vect.new(0.0, 0.0)
     @right_click = false
     @right_down = false
+    @message = ""
 
     rescale
   end
@@ -137,6 +140,10 @@ class Demo
       end
 
       draw()
+
+      @text.string = "Use the mouse to grab objects.\n" + @message
+      @window.draw @text
+
       @window.display()
     end
   end

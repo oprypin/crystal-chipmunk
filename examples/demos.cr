@@ -5,7 +5,7 @@ FONT = SF::Font.from_file("resources/font/Cantarell-Regular.otf")
 
 window = SF::RenderWindow.new(
   SF::VideoMode.new(990, 750), "",
-  settings: SF::ContextSettings.new(depth: 24, antialiasing: 4)
+  settings: SF::ContextSettings.new(depth: 24, antialiasing: 8)
 )
 window.vertical_sync_enabled = true
 
@@ -95,9 +95,8 @@ while window.open?
         %demos{cls}.draw
 
         text.string = {{cls}}::TITLE
-        bounds = text.local_bounds
-        text.origin = {bounds.width / 2, bounds.height / 2}
-        text.position = window.size / 2
+        text.origin = {text.local_bounds.width / 2, 0}
+        text.position = {window.size.x / 2, 10}
         window.draw text
 
         i += 1
@@ -105,6 +104,12 @@ while window.open?
     {% end %}
 
     reset_view(window)
+
+    text = SF::Text.new("Click to select a demo. Right click to reset.", FONT, 18)
+    text.origin = {text.local_bounds.width, text.local_bounds.height}
+    text.position = window.size - {10, 10}
+    window.draw text
+
     cache.create(window.size.x, window.size.y)
     cache.update(window)
 
