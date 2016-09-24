@@ -20,6 +20,7 @@
 
 
 module CP
+  # Defines the shape of a rigid body.
   abstract class Shape
     abstract def to_unsafe : LibCP::Shape
 
@@ -36,70 +37,91 @@ module CP
       LibCP.shape_destroy(self)
     end
 
+    # Update, cache and return the bounding box of a shape based on the body it's attached to.
     def cache_bb() : BB
       LibCP.shape_cache_bb(self)
     end
 
+    # Update, cache and return the bounding box of a shape with an explicit transformation.
     def update(transform : Transform) : BB
       LibCP.shape_update(self, transform)
     end
 
+    # Perform a nearest point query. It finds the closest point on the surface of shape to a specific point.
+    #
+    # The value returned is the distance between the points. A negative distance means the point is inside the shape.
     def point_query(p : Vect) : PointQueryInfo
       LibCP.shape_point_query(self, p, out info)
       info
     end
 
+    # Perform a segment query against a shape.
     def segment_query(a : Vect, b : Vect, radius : Number = 0) : SegmentQueryInfo?
       if LibCP.shape_segment_query(self, a, b, radius, out info)
         info
       end
     end
 
+    # Return contact information about two shapes.
     def collide(b : Shape) : ContactPointSet
       LibCP.shapes_collide(self, b)
     end
 
+    # The `Space` this body is added to.
     def space : Space?
       Space[LibCP.shape_get_space(self)]?
     end
 
+    # Get the `Body` this shape is connected to.
     def body : Body?
       Body[LibCP.shape_get_body(self)]?
     end
+    # Set the `Body` this shape is connected to.
+    #
+    # Can only be used if the shape is not currently added to a space.
     def body=(body : Body?)
       LibCP.shape_set_body(self, body)
     end
 
+    # Get the mass of the shape if you are having Chipmunk calculate mass properties for you.
     def mass : Float64
       LibCP.shape_get_mass(self)
     end
+    # Set the mass of this shape to have Chipmunk calculate mass properties for you.
     def mass=(mass : Number)
       LibCP.shape_set_mass(self, mass)
     end
 
+    # Get the density of the shape if you are having Chipmunk calculate mass properties for you.
     def density : Float64
       LibCP.shape_get_density(self)
     end
+    # Set the density  of this shape to have Chipmunk calculate mass properties for you.
     def density=(density : Number)
       LibCP.shape_set_density(self, density)
     end
 
+    # Get the calculated moment of inertia for this shape.
     def moment() : Float64
       LibCP.shape_get_moment(self)
     end
 
+    # Get the calculated area of this shape.
     def area() : Float64
       LibCP.shape_get_area(self)
     end
 
+    # Get the centroid of this shape.
     def center_of_gravity() : Vect
       LibCP.shape_get_center_of_gravity(self)
     end
 
+    # Get the bounding box that contains the shape given its current position and angle.
     def bb() : BB
       LibCP.shape_get_bb(self)
     end
 
+    # Is the shape set to be a sensor or not?
     def sensor? : Bool
       LibCP.shape_get_sensor(self)
     end
@@ -107,6 +129,7 @@ module CP
       LibCP.shape_set_sensor(self, sensor)
     end
 
+    # The elasticity of this shape.
     def elasticity : Float64
       LibCP.shape_get_elasticity(self)
     end
@@ -114,6 +137,7 @@ module CP
       LibCP.shape_set_elasticity(self, elasticity)
     end
 
+    # The friction of this shape.
     def friction : Float64
       LibCP.shape_get_friction(self)
     end
@@ -121,6 +145,7 @@ module CP
       LibCP.shape_set_friction(self, friction)
     end
 
+    # The surface velocity of this shape.
     def surface_velocity : Vect
       LibCP.shape_get_surface_velocity(self)
     end
@@ -128,6 +153,7 @@ module CP
       LibCP.shape_set_surface_velocity(self, surface_velocity)
     end
 
+    # The collision type of this shape.
     def collision_type : CollisionType
       LibCP.shape_get_collision_type(self)
     end
@@ -135,6 +161,7 @@ module CP
       LibCP.shape_set_collision_type(self, collision_type)
     end
 
+    # The collision filtering parameters of this shape.
     def filter : ShapeFilter
       LibCP.shape_get_filter(self)
     end
@@ -143,10 +170,16 @@ module CP
     end
 
     class Circle < Shape
+      # Calculate the moment of inertia for a circle.
+      #
+      # *r1* and *r2* are the inner and outer diameters. A solid circle has an inner diameter of 0.
       def self.moment(m : Number, r1 : Number, r2 : Number, offset : Vect = CP::Vect.new(0, 0)) : Float64
         LibCP.moment_for_circle(m, r1, r2, offset)
       end
 
+      # Calculate area of a hollow circle.
+      #
+      # *r1* and *r2* are the inner and outer diameters. A solid circle has an inner diameter of 0.
       def self.area(r1 : Number, r2 : Number) : Float64
         LibCP.area_for_circle(r1, r2)
       end
@@ -162,20 +195,26 @@ module CP
         pointerof(@shape).as(LibCP::Shape*)
       end
 
+      # Get the offset of a circle shape.
       def offset : Vect
         LibCP.circle_shape_get_offset(self)
       end
 
+      # Get the radius of a circle shape.
       def radius : Float64
         LibCP.circle_shape_get_radius(self)
       end
     end
 
     class Segment < Shape
+      # Calculate the moment of inertia for a line segment.
+      #
+      # Beveling radius is not supported.
       def self.moment(m : Number, a : Vect, b : Vect, radius : Number = 0) : Float64
         LibCP.moment_for_segment(m, a, b, radius)
       end
 
+      # Calculate the area of a fattened (capsule shaped) line segment.
       def self.area(a : Vect, b : Vect, radius : Number) : Float64
         LibCP.area_for_segment(a, b, radius)
       end
@@ -191,40 +230,55 @@ module CP
         pointerof(@shape).as(LibCP::Shape*)
       end
 
+      # Let Chipmunk know about the geometry of adjacent segments to avoid colliding with endcaps.
       def set_neighbors(prev : Vect, next next_ : Vect)
         LibCP.segment_shape_set_neighbors(self, prev, next_)
       end
 
+      # Get the first endpoint of a segment shape.
       def a : Vect
         LibCP.segment_shape_get_a(self)
       end
+      # Get the second endpoint of a segment shape.
       def b : Vect
         LibCP.segment_shape_get_b(self)
       end
 
+      # Get the normal of a segment shape.
       def normal() : Vect
         LibCP.segment_shape_get_normal(self)
       end
 
+      # Get the radius of a segment shape.
       def radius : Float64
         LibCP.segment_shape_get_radius(self)
       end
     end
 
     class Poly < Shape
+      # Calculate the moment of inertia for a solid polygon shape assuming it's center of gravity is at it's centroid. The offset is added to each vertex.
       def self.moment(m : Number, verts : Array(Vect)|Slice(Vect), offset : Vect = CP::Vect.new(0, 0), radius : Number = 0) : Float64
         LibCP.moment_for_poly(m, verts.size, verts, offset, radius)
       end
 
+      # Calculate the signed area of a polygon.
+      #
+      # A Clockwise winding gives positive area.
+      # This is probably backwards from what you expect, but matches Chipmunk's the winding for poly shapes.
       def self.area(verts : Array(Vect)|Slice(Vect), radius : Number = 0) : Float64
         LibCP.area_for_poly(verts.size, verts, radius)
       end
 
+      # Calculate the natural centroid of a polygon.
       def self.centroid(verts : Array(Vect)|Slice(Vect)) : Vect
         LibCP.centroid_for_poly(verts.size, verts)
       end
 
-      def self.convex_hull(verts : Array(Vect)|Slice(Vect), tol : Number) : {Slice(Vect), Int32}
+      # Calculate the convex hull of a given set of points.
+      #
+      # *tol* is the allowed amount to shrink the hull when simplifying it. A tolerance of 0.0 creates an exact hull.
+      # Returns the convex hull and where the first vertex in the hull came from (i.e. `verts[first] == result[0]`)
+      def self.convex_hull(verts : Array(Vect)|Slice(Vect), tol : Number = 0) : {Slice(Vect), Int32}
         result = Slice(Vect).new(verts.size)
         LibCP.convex_hull(verts.size, verts, result, out first, tol)
         {result, first}
@@ -233,11 +287,15 @@ module CP
       include Enumerable(Vect)
       include Indexable(Vect)
 
+      # Initialize a polygon shape with rounded corners.
+      # A convex hull will be created from the vertexes.
       def initialize(body : Body?, verts : Array(Vect)|Slice(Vect), transform : Transform = Transform::IDENTITY, radius : Number = 0)
         @shape = uninitialized LibCP::PolyShape
         LibCP.poly_shape_init(pointerof(@shape), body, verts.size, verts, transform, radius)
         LibCP.shape_set_user_data(self, self.as(Void*))
       end
+      # Initialize a polygon shape with rounded corners.
+      # The vertexes must be convex with a counter-clockwise winding.
       def initialize(body : Body?, verts : Array(Vect)|Slice(Vect), radius : Number)
         @shape = uninitialized LibCP::PolyShape
         LibCP.poly_shape_init_raw(pointerof(@shape), body, verts.size, verts, radius)
@@ -249,33 +307,40 @@ module CP
         pointerof(@shape).as(LibCP::Shape*)
       end
 
+      # Get the number of verts in a polygon shape.
       def size : Int32
         LibCP.poly_shape_get_count(self)
       end
 
+      # Get the *i*-th vertex of a polygon shape.
       def unsafe_at(index : Int32) : Vect
         LibCP.poly_shape_get_vert(self, index)
       end
 
+      # Get the radius of a polygon shape.
       def radius : Float64
         LibCP.poly_shape_get_radius(self)
       end
     end
 
     class Box < Poly
+      # Calculate the moment of inertia for a solid box.
       def self.moment(m : Number, width : Number, height : Number) : Float64
         LibCP.moment_for_box(m, width, height)
       end
 
+      # Calculate the moment of inertia for a solid box.
       def self.moment(m : Number, box : BB) : Float64
         LibCP.moment_for_box2(m, box)
       end
 
+      # Initialize a box shaped polygon shape with rounded corners.
       def initialize(body : Body?, width : Number, height : Number, radius : Number = 0)
         @shape = uninitialized LibCP::PolyShape
         LibCP.box_shape_init(pointerof(@shape), body, width, height, radius)
         LibCP.shape_set_user_data(self, self.as(Void*))
       end
+      # Initialize an offset box shaped polygon shape with rounded corners.
       def initialize(body : Body?, box : BB, radius : Number = 0)
         @shape = uninitialized LibCP::PolyShape
         LibCP.box_shape_init2(pointerof(@shape), body, box, radius)

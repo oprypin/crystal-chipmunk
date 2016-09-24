@@ -23,8 +23,11 @@
 module CP
   class Space
     abstract class DebugDraw
+      # Outline color passed to the drawing function.
       SHAPE_OUTLINE_COLOR = Color.new(*{200, 210, 230}.map(&./ 255.0)) #/
+      # Color passed to drawing functions for constraints.
       CONSTRAINT_COLOR = Color.new(0.0, 0.75, 0.0)
+      # Color passed to drawing functions for collision points.
       COLLISION_POINT_COLOR = Color.new(1.0, 0.0, 0.0)
 
       @@spring_verts : Array(CP::Vect) = [
@@ -45,6 +48,7 @@ module CP
         {1.00, 0.0},
       ].map { |v| CP.v(*v) }
 
+      # Flags that request which things to draw (collision shapes, constraints, contact points).
       @[Flags]
       enum Flags
         DRAW_SHAPES = 1 << 0
@@ -54,6 +58,7 @@ module CP
       _cp_extract Flags
 
       @[Extern]
+      # Color type to use with the space debug drawing API.
       struct Color
         property r : Float32
         property g : Float32
@@ -77,6 +82,7 @@ module CP
 
       property flags : Flags
 
+      # Debug draw the current state of the space.
       def draw(space : Space)
         if @flags.draw_shapes?
           space.each_shape do |shape|
@@ -179,16 +185,24 @@ module CP
         end
       end
 
+      # Draw a filled, stroked circle.
       abstract def draw_circle(pos : Vect, angle : Float64, radius : Float64, outline_color : Color, fill_color : Color)
 
+      # Draw a line segment.
       abstract def draw_segment(a : Vect, b : Vect, color : Color)
 
+      # Draw a thick line segment.
       abstract def draw_fat_segment(a : Vect, b : Vect, radius : Float64, outline_color : Color, fill_color : Color)
 
+      # Draw a convex polygon.
       abstract def draw_polygon(verts : Slice(Vect), radius : Float64, outline_color : Color, fill_color : Color)
 
+      # Draw a dot.
       abstract def draw_dot(size : Float64, pos : Vect, color : Color)
 
+      # Returns a color for a given shape.
+      #
+      # This gives you an opportunity to color shapes based on how they are used in your engine.
       def color_for_shape(shape : Shape) : Color
         return Color.gray(1.0, 0.1) if shape.sensor?
 

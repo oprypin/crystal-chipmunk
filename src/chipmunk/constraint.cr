@@ -49,21 +49,28 @@ module CP
       LibCP.constraint_destroy(self)
     end
 
+    # Get the `Space` this constraint is added to.
     def space : Space?
       Space[LibCP.constraint_get_space(self)]?
     end
 
+    # Get the first body the constraint is attached to.
     def body_a : Body
       Body[LibCP.constraint_get_body_a(self)]
     end
+    # Get the second body the constraint is attached to.
     def body_b : Body
       Body[LibCP.constraint_get_body_b(self)]
     end
 
+    # Get the bodies the constraint is attached to.
     def bodies : {Body, Body}
       {body_a, body_b}
     end
 
+    # The maximum force that this constraint is allowed to use.
+    #
+    # (defaults to INFINITY)
     def max_force : Float64
       LibCP.constraint_get_max_force(self)
     end
@@ -71,6 +78,10 @@ module CP
       LibCP.constraint_set_max_force(self, max_force)
     end
 
+    # Rate at which joint error is corrected.
+    #
+    # Defaults to (1.0 - 0.1) ** 60.0 meaning that it will
+    # correct 10% of the error every 1/60th of a second.
     def error_bias : Float64
       LibCP.constraint_get_error_bias(self)
     end
@@ -78,6 +89,9 @@ module CP
       LibCP.constraint_set_error_bias(self, error_bias)
     end
 
+    # The maximum rate at which joint error is corrected.
+    #
+    # (defaults to INFINITY)
     def max_bias : Float64
       LibCP.constraint_get_max_bias(self)
     end
@@ -85,6 +99,9 @@ module CP
       LibCP.constraint_set_max_bias(self, max_bias)
     end
 
+    # Are the two bodies connected by the constraint allowed to collide or not?
+    #
+    # (defaults to false)
     def collide_bodies? : Bool
       LibCP.constraint_get_collide_bodies(self)
     end
@@ -92,12 +109,17 @@ module CP
       LibCP.constraint_set_collide_bodies(self, collide_bodies)
     end
 
+    # Get the last impulse applied by this constraint.
     def impulse : Float64
       LibCP.constraint_get_impulse(self)
     end
 
+    # The pre-solve method that is called before the solver runs
+    # (can be overridden in a subclass).
     def pre_solve(space : Space)
     end
+    # The post-solve method that is called before the solver runs
+    # (can be overridden in a subclass).
     def post_solve(space : Space)
     end
 
@@ -115,6 +137,7 @@ module CP
         pointerof(@constraint).as(LibCP::Constraint*)
       end
 
+      # The phase offset of the gears.
       def phase : Float64
         LibCP.gear_joint_get_phase(self)
       end
@@ -122,6 +145,7 @@ module CP
         LibCP.gear_joint_set_phase(self, phase)
       end
 
+      # The angular distance of each ratchet.
       def ratio : Float64
         LibCP.gear_joint_get_ratio(self)
       end
@@ -144,6 +168,7 @@ module CP
         pointerof(@constraint).as(LibCP::Constraint*)
       end
 
+      # The first endpoint of the groove relative to the first body.
       def groove_a : Vect
         LibCP.groove_joint_get_groove_a(self)
       end
@@ -151,6 +176,7 @@ module CP
         LibCP.groove_joint_set_groove_a(self, groove_a)
       end
 
+      # The second endpoint of the groove relative to the second body.
       def groove_b : Vect
         LibCP.groove_joint_get_groove_b(self)
       end
@@ -158,6 +184,7 @@ module CP
         LibCP.groove_joint_set_groove_b(self, groove_b)
       end
 
+      # The location of the second anchor relative to the second body.
       def anchor_b : Vect
         LibCP.groove_joint_get_anchor_b(self)
       end
@@ -180,6 +207,7 @@ module CP
         pointerof(@constraint).as(LibCP::Constraint*)
       end
 
+      # The location of the first anchor relative to the first body.
       def anchor_a : Vect
         LibCP.pin_joint_get_anchor_a(self)
       end
@@ -187,6 +215,7 @@ module CP
         LibCP.pin_joint_set_anchor_a(self, anchor_a)
       end
 
+      # The location of the second anchor relative to the second body.
       def anchor_b : Vect
         LibCP.pin_joint_get_anchor_b(self)
       end
@@ -194,6 +223,7 @@ module CP
         LibCP.pin_joint_set_anchor_b(self, anchor_b)
       end
 
+      # The distance the joint will maintain between the two anchors.
       def dist : Float64
         LibCP.pin_joint_get_dist(self)
       end
@@ -221,6 +251,7 @@ module CP
         pointerof(@constraint).as(LibCP::Constraint*)
       end
 
+      # The location of the first anchor relative to the first body.
       def anchor_a : Vect
         LibCP.pivot_joint_get_anchor_a(self)
       end
@@ -228,6 +259,7 @@ module CP
         LibCP.pivot_joint_set_anchor_a(self, anchor_a)
       end
 
+      # The location of the second anchor relative to the second body.
       def anchor_b : Vect
         LibCP.pivot_joint_get_anchor_b(self)
       end
@@ -250,6 +282,7 @@ module CP
         pointerof(@constraint).as(LibCP::Constraint*)
       end
 
+      # The location of the first anchor relative to the first body.
       def anchor_a : Vect
         LibCP.slide_joint_get_anchor_a(self)
       end
@@ -257,6 +290,7 @@ module CP
         LibCP.slide_joint_set_anchor_a(self, anchor_a)
       end
 
+      # The location of the second anchor relative to the second body.
       def anchor_b : Vect
         LibCP.slide_joint_get_anchor_b(self)
       end
@@ -264,6 +298,7 @@ module CP
         LibCP.slide_joint_set_anchor_b(self, anchor_b)
       end
 
+      # The minimum distance the joint will maintain between the two anchors.
       def min : Float64
         LibCP.slide_joint_get_min(self)
       end
@@ -271,6 +306,7 @@ module CP
         LibCP.slide_joint_set_min(self, min)
       end
 
+      # The maximum distance the joint will maintain between the two anchors.
       def max : Float64
         LibCP.slide_joint_get_max(self)
       end
@@ -293,6 +329,7 @@ module CP
         pointerof(@constraint).as(LibCP::Constraint*)
       end
 
+      # The angle of the current ratchet tooth.
       def angle : Float64
         LibCP.ratchet_joint_get_angle(self)
       end
@@ -300,6 +337,7 @@ module CP
         LibCP.ratchet_joint_set_angle(self, angle)
       end
 
+      # The phase offset of the ratchet.
       def phase : Float64
         LibCP.ratchet_joint_get_phase(self)
       end
@@ -307,6 +345,7 @@ module CP
         LibCP.ratchet_joint_set_phase(self, phase)
       end
 
+      # The angular distance of each ratchet.
       def ratchet : Float64
         LibCP.ratchet_joint_get_ratchet(self)
       end
@@ -329,6 +368,7 @@ module CP
         pointerof(@constraint).as(LibCP::Constraint*)
       end
 
+      # The minimum distance the joint will maintain between the two anchors.
       def min : Float64
         LibCP.rotary_limit_joint_get_min(self)
       end
@@ -336,6 +376,7 @@ module CP
         LibCP.rotary_limit_joint_set_min(self, min)
       end
 
+      # The maximum distance the joint will maintain between the two anchors.
       def max : Float64
         LibCP.rotary_limit_joint_get_max(self)
       end
@@ -364,6 +405,7 @@ module CP
         pointerof(@constraint).as(LibCP::Constraint*)
       end
 
+      # The location of the first anchor relative to the first body.
       def anchor_a : Vect
         LibCP.damped_spring_get_anchor_a(self)
       end
@@ -371,6 +413,7 @@ module CP
         LibCP.damped_spring_set_anchor_a(self, anchor_a)
       end
 
+      # The location of the second anchor relative to the second body.
       def anchor_b : Vect
         LibCP.damped_spring_get_anchor_b(self)
       end
@@ -378,6 +421,7 @@ module CP
         LibCP.damped_spring_set_anchor_b(self, anchor_b)
       end
 
+      # The rest length of the spring.
       def rest_length : Float64
         LibCP.damped_spring_get_rest_length(self)
       end
@@ -385,6 +429,7 @@ module CP
         LibCP.damped_spring_set_rest_length(self, rest_length)
       end
 
+      # The stiffness of the spring in force/distance.
       def stiffness : Float64
         LibCP.damped_spring_get_stiffness(self)
       end
@@ -392,6 +437,7 @@ module CP
         LibCP.damped_spring_set_stiffness(self, stiffness)
       end
 
+      # The damping of the spring.
       def damping : Float64
         LibCP.damped_spring_get_damping(self)
       end
@@ -399,6 +445,7 @@ module CP
         LibCP.damped_spring_set_damping(self, damping)
       end
 
+      # (can be overridden in a subclass)
       def spring_force(dist : Float64) : Number
         0
       end
@@ -424,6 +471,7 @@ module CP
         pointerof(@constraint).as(LibCP::Constraint*)
       end
 
+      # The rest angle of the spring.
       def rest_angle : Float64
         LibCP.damped_rotary_spring_get_rest_angle(self)
       end
@@ -431,6 +479,7 @@ module CP
         LibCP.damped_rotary_spring_set_rest_angle(self, rest_angle)
       end
 
+      # The stiffness of the spring in force/distance.
       def stiffness : Float64
         LibCP.damped_rotary_spring_get_stiffness(self)
       end
@@ -438,6 +487,7 @@ module CP
         LibCP.damped_rotary_spring_set_stiffness(self, stiffness)
       end
 
+      # The damping of the spring.
       def damping : Float64
         LibCP.damped_rotary_spring_get_damping(self)
       end
@@ -445,6 +495,7 @@ module CP
         LibCP.damped_rotary_spring_set_damping(self, damping)
       end
 
+      # (can be overridden in a subclass)
       def spring_torque(relative_angle : Float64) : Number
         0
       end
@@ -464,6 +515,7 @@ module CP
         pointerof(@constraint).as(LibCP::Constraint*)
       end
 
+      # The rate of the motor.
       def rate : Float64
         LibCP.simple_motor_get_rate(self)
       end
