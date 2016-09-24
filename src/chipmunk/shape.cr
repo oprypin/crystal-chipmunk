@@ -165,7 +165,7 @@ module CP
   end
 
   class SegmentShape < Shape
-    def initialize(body : Body?, a : Vect, b : Vect, radius : Number)
+    def initialize(body : Body?, a : Vect, b : Vect, radius : Number = 0)
       @shape = uninitialized LibCP::SegmentShape
       LibCP.segment_shape_init(pointerof(@shape), body, a, b, radius)
       LibCP.shape_set_user_data(self, self.as(Void*))

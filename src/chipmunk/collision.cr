@@ -161,8 +161,8 @@ module CP
   end
 
   class CollisionHandler
-    property type_a = CollisionType.new(0)
-    property type_b = CollisionType.new(0)
+    getter type_a = CollisionType.new(0)
+    getter type_b = CollisionType.new(0)
 
     @@begin : LibCP::CollisionBeginFunc =
     ->(arbiter : LibCP::Arbiter*, space : LibCP::Space*, data : Void*) {

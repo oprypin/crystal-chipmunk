@@ -134,9 +134,11 @@ class Demo
 
       while @sim_time < @runtime_clock.elapsed_time.as_seconds
         @right_down = SF::Mouse.button_pressed? SF::Mouse::Right
+
         update()
-        @right_click = false
         @sim_time += 1.0/{% begin %}{{@type.id}}::SIM_FPS{% end %}
+
+        @right_click = false
       end
 
       draw()

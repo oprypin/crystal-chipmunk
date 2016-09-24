@@ -128,59 +128,50 @@ module CP
       handler.prime!(LibCP.space_add_default_collision_handler(self))
     end
 
-    private def _add(shape : Shape)
-      LibCP.space_add_shape(self, shape)
-      shape
-    end
-    private def _add(body : Body)
-      LibCP.space_add_body(self, body)
-      body
-    end
-    private def _add(constraint : Constraint)
-      LibCP.space_add_constraint(self, constraint)
-      constraint
-    end
+    {% for type in %w[Body Shape Constraint] %}
+      {% name = type.downcase.id %}
+      {% type = type.id %}
 
-    def add(*items : (Shape | Body | Constraint))
-      items.each do |item|
+      def add({{name}} : {{type}}) : {{type}}
         if @in_step
-          @todo[item] = true
+          @todo[{{name}}] = true
         else
-          _add item
+          LibCP.space_add_{{name}}(self, {{name}})
+        end
+        {{name}}
+      end
+
+      def remove({{name}} : {{type}})
+        if @in_step
+          @todo[{{name}}] = false
+        else
+          LibCP.space_remove_{{name}}(self, {{name}})
         end
       end
-      items[0]
-    end
 
-    private def _remove(shape : Shape)
-      LibCP.space_remove_shape(self, shape)
-    end
-    private def _remove(body : Body)
-      LibCP.space_remove_body(self, body)
-    end
-    private def _remove(constraint : Constraint)
-      LibCP.space_remove_constraint(self, constraint)
-    end
-
-    def remove(*items : (Shape | Body | Constraint))
-      items.each do |item|
-        if @in_step
-          @todo[item] = false
-        else
-          _remove item
-        end
+      def contains?({{name}} : {{type}}) : Bool
+        LibCP.space_contains_{{name}}(self, {{name}})
       end
-      items[0]
+
+      _cp_gather {% if type == "Body" %}bodies{% else %}{{name + "s"}}{% end %} : {{type}},
+      def each_{{name}}(&block : {{type}} ->)
+        LibCP.space_each_{{name}}(self, ->(item, data) {
+          data.as(typeof(block)*).value.call({{type}}[item])
+        }, pointerof(block))
+      end
+    {% end %}
+
+    def add(*items : Shape | Body | Constraint) : Tuple
+      items.each do |item|
+        add item
+      end
+      items
     end
 
-    def contains?(shape : Shape) : Bool
-      LibCP.space_contains_shape(self, shape)
-    end
-    def contains?(body : Body) : Bool
-      LibCP.space_contains_body(self, body)
-    end
-    def contains?(constraint : Constraint) : Bool
-      LibCP.space_contains_constraint(self, constraint)
+    def remove(*items : Shape | Body | Constraint)
+      items.each do |item|
+        remove item
+      end
     end
 
     _cp_gather point_query : PointQueryInfo,
@@ -223,18 +214,6 @@ module CP
       }, pointerof(block))
     end
 
-    {% for type in %w[Body Shape Constraint] %}
-      {% name = type.downcase.id %}
-      {% type = type.id %}
-
-      _cp_gather {% if type == "Body" %}bodies{% else %}{{name + "s"}}{% end %} : {{type}},
-      def each_{{name}}(&block : {{type}} ->)
-        LibCP.space_each_{{name}}(self, ->(item, data) {
-          data.as(typeof(block)*).value.call({{type}}[item])
-        }, pointerof(block))
-      end
-    {% end %}
-
     def reindex_static()
       LibCP.space_reindex_static(self)
     end
@@ -258,9 +237,9 @@ module CP
 
       @todo.each do |item, add|
         if add
-          _add item
+          add item
         else
-          _remove item
+          remove item
         end
       end
       @todo.clear

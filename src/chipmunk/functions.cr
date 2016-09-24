@@ -31,7 +31,7 @@ module CP
     LibCP.area_for_circle(r1, r2)
   end
 
-  def moment_for_segment(m : Number, a : Vect, b : Vect, radius : Number) : Float64
+  def moment_for_segment(m : Number, a : Vect, b : Vect, radius : Number = 0) : Float64
     LibCP.moment_for_segment(m, a, b, radius)
   end
 
@@ -43,7 +43,7 @@ module CP
     LibCP.moment_for_poly(m, verts.size, verts, offset, radius)
   end
 
-  def area_for_poly(verts : Array(Vect)|Slice(Vect), radius : Number) : Float64
+  def area_for_poly(verts : Array(Vect)|Slice(Vect), radius : Number = 0) : Float64
     LibCP.area_for_poly(verts.size, verts, radius)
   end
 
