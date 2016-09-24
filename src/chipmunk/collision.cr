@@ -101,7 +101,7 @@ module CP
       LibCP.arbiter_get_contact_point_set(self)
     end
     def contact_point_set=(contact_point_set : ContactPointSet)
-      LibCP.arbiter_set_contact_point_set(self, contact_point_set)
+      LibCP.arbiter_set_contact_point_set(self, pointerof(contact_point_set))
     end
 
     def first_contact? : Bool
@@ -132,31 +132,38 @@ module CP
     end
 
     def call_wildcard_begin_a(space : Space) : Bool
-      arbiter_call_wildcard_begin_a(self, space)
+      LibCP.arbiter_call_wildcard_begin_a(self, space)
     end
     def call_wildcard_begin_b(space : Space) : Bool
-      arbiter_call_wildcard_begin_b(self, space)
+      LibCP.arbiter_call_wildcard_begin_b(self, space)
     end
 
     def call_wildcard_pre_solve_a(space : Space) : Bool
-      arbiter_call_wildcard_pre_solve_a(self, space)
+      LibCP.arbiter_call_wildcard_pre_solve_a(self, space)
     end
     def call_wildcard_pre_solve_b(space : Space) : Bool
-      arbiter_call_wildcard_pre_solve_b(self, space)
+      LibCP.arbiter_call_wildcard_pre_solve_b(self, space)
     end
 
     def call_wildcard_post_solve_a(space : Space)
-      arbiter_call_wildcard_post_solve_a(self, space)
+      LibCP.arbiter_call_wildcard_post_solve_a(self, space)
     end
     def call_wildcard_post_solve_b(space : Space)
-      arbiter_call_wildcard_post_solve_b(self, space)
+      LibCP.arbiter_call_wildcard_post_solve_b(self, space)
     end
 
     def call_wildcard_separate_a(space : Space)
-      arbiter_call_wildcard_separate_a(self, space)
+      LibCP.arbiter_call_wildcard_separate_a(self, space)
     end
     def call_wildcard_separate_b(space : Space)
-      arbiter_call_wildcard_separate_b(self, space)
+      LibCP.arbiter_call_wildcard_separate_b(self, space)
+    end
+
+    def data : Void*
+      LibCP.arbiter_get_user_data(self)
+    end
+    def data=(data)
+      LibCP.arbiter_set_user_data(self, data.as(Void*))
     end
   end
 

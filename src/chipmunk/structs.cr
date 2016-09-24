@@ -101,7 +101,7 @@ module CP
     end
 
     def normalize() : Vect
-      self * (1.0 / (length + Float64::MIN))
+      self * (1.0 / (length + 2.2250738585072014e-308))
     end
 
     def self.slerp(v1 : Vect, v2 : Vect, t : Number) : Vect

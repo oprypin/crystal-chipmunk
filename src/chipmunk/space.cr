@@ -26,6 +26,7 @@ module CP
       @space = uninitialized LibCP::Space
       @in_step = false
       @todo = {} of (Body | Shape | Constraint) => Bool
+      @collision_handlers = Set(CollisionHandler).new
       LibCP.space_init(self)
       LibCP.space_set_user_data(self, self.as(Void*))
     end
@@ -117,14 +118,17 @@ module CP
     end
 
     def add_collision_handler(a : Int, b : Int, handler : CollisionHandler) : CollisionHandler
+      @collision_handlers << handler
       handler.prime!(LibCP.space_add_collision_handler(self, a, b))
     end
 
     def add_collision_handler(type : Int, handler : CollisionHandler) : CollisionHandler
+      @collision_handlers << handler
       handler.prime!(LibCP.space_add_wildcard_handler(self, type))
     end
 
     def add_collision_handler(handler : CollisionHandler) : CollisionHandler
+      @collision_handlers << handler
       handler.prime!(LibCP.space_add_default_collision_handler(self))
     end
 
