@@ -141,104 +141,155 @@ module CP
     def filter=(filter : ShapeFilter)
       LibCP.shape_set_filter(self, filter)
     end
+
+    class Circle < Shape
+      def self.moment(m : Number, r1 : Number, r2 : Number, offset : Vect = CP::Vect.new(0, 0)) : Float64
+        LibCP.moment_for_circle(m, r1, r2, offset)
+      end
+
+      def self.area(r1 : Number, r2 : Number) : Float64
+        LibCP.area_for_circle(r1, r2)
+      end
+
+      def initialize(body : Body?, radius : Number, offset : Vect = CP::Vect.new(0, 0))
+        @shape = uninitialized LibCP::CircleShape
+        LibCP.circle_shape_init(pointerof(@shape), body, radius, offset)
+        LibCP.shape_set_user_data(self, self.as(Void*))
+      end
+
+      # :nodoc:
+      def to_unsafe : LibCP::Shape*
+        pointerof(@shape).as(LibCP::Shape*)
+      end
+
+      def offset : Vect
+        LibCP.circle_shape_get_offset(self)
+      end
+
+      def radius : Float64
+        LibCP.circle_shape_get_radius(self)
+      end
+    end
+
+    class Segment < Shape
+      def self.moment(m : Number, a : Vect, b : Vect, radius : Number = 0) : Float64
+        LibCP.moment_for_segment(m, a, b, radius)
+      end
+
+      def self.area(a : Vect, b : Vect, radius : Number) : Float64
+        LibCP.area_for_segment(a, b, radius)
+      end
+
+      def initialize(body : Body?, a : Vect, b : Vect, radius : Number = 0)
+        @shape = uninitialized LibCP::SegmentShape
+        LibCP.segment_shape_init(pointerof(@shape), body, a, b, radius)
+        LibCP.shape_set_user_data(self, self.as(Void*))
+      end
+
+      # :nodoc:
+      def to_unsafe : LibCP::Shape*
+        pointerof(@shape).as(LibCP::Shape*)
+      end
+
+      def set_neighbors(prev : Vect, next next_ : Vect)
+        LibCP.segment_shape_set_neighbors(self, prev, next_)
+      end
+
+      def a : Vect
+        LibCP.segment_shape_get_a(self)
+      end
+      def b : Vect
+        LibCP.segment_shape_get_b(self)
+      end
+
+      def normal() : Vect
+        LibCP.segment_shape_get_normal(self)
+      end
+
+      def radius : Float64
+        LibCP.segment_shape_get_radius(self)
+      end
+    end
+
+    class Poly < Shape
+      def self.moment(m : Number, verts : Array(Vect)|Slice(Vect), offset : Vect = CP::Vect.new(0, 0), radius : Number = 0) : Float64
+        LibCP.moment_for_poly(m, verts.size, verts, offset, radius)
+      end
+
+      def self.area(verts : Array(Vect)|Slice(Vect), radius : Number = 0) : Float64
+        LibCP.area_for_poly(verts.size, verts, radius)
+      end
+
+      def self.centroid(verts : Array(Vect)|Slice(Vect)) : Vect
+        LibCP.centroid_for_poly(verts.size, verts)
+      end
+
+      def self.convex_hull(verts : Array(Vect)|Slice(Vect), tol : Number) : {Slice(Vect), Int32}
+        result = Slice(Vect).new(verts.size)
+        LibCP.convex_hull(verts.size, verts, result, out first, tol)
+        {result, first}
+      end
+
+      include Enumerable(Vect)
+      include Indexable(Vect)
+
+      def initialize(body : Body?, verts : Array(Vect)|Slice(Vect), transform : Transform = Transform::IDENTITY, radius : Number = 0)
+        @shape = uninitialized LibCP::PolyShape
+        LibCP.poly_shape_init(pointerof(@shape), body, verts.size, verts, transform, radius)
+        LibCP.shape_set_user_data(self, self.as(Void*))
+      end
+      def initialize(body : Body?, verts : Array(Vect)|Slice(Vect), radius : Number)
+        @shape = uninitialized LibCP::PolyShape
+        LibCP.poly_shape_init_raw(pointerof(@shape), body, verts.size, verts, radius)
+        LibCP.shape_set_user_data(self, self.as(Void*))
+      end
+
+      # :nodoc:
+      def to_unsafe : LibCP::Shape*
+        pointerof(@shape).as(LibCP::Shape*)
+      end
+
+      def size : Int32
+        LibCP.poly_shape_get_count(self)
+      end
+
+      def unsafe_at(index : Int32) : Vect
+        LibCP.poly_shape_get_vert(self, index)
+      end
+
+      def radius : Float64
+        LibCP.poly_shape_get_radius(self)
+      end
+    end
+
+    class Box < Poly
+      def self.moment(m : Number, width : Number, height : Number) : Float64
+        LibCP.moment_for_box(m, width, height)
+      end
+
+      def self.moment(m : Number, box : BB) : Float64
+        LibCP.moment_for_box2(m, box)
+      end
+
+      def initialize(body : Body?, width : Number, height : Number, radius : Number = 0)
+        @shape = uninitialized LibCP::PolyShape
+        LibCP.box_shape_init(pointerof(@shape), body, width, height, radius)
+        LibCP.shape_set_user_data(self, self.as(Void*))
+      end
+      def initialize(body : Body?, box : BB, radius : Number = 0)
+        @shape = uninitialized LibCP::PolyShape
+        LibCP.box_shape_init2(pointerof(@shape), body, box, radius)
+        LibCP.shape_set_user_data(self, self.as(Void*))
+      end
+    end
   end
 
-  class CircleShape < Shape
-    def initialize(body : Body?, radius : Number, offset : Vect = CP::Vect.new(0, 0))
-      @shape = uninitialized LibCP::CircleShape
-      LibCP.circle_shape_init(pointerof(@shape), body, radius, offset)
-      LibCP.shape_set_user_data(self, self.as(Void*))
-    end
-
-    # :nodoc:
-    def to_unsafe : LibCP::Shape*
-      pointerof(@shape).as(LibCP::Shape*)
-    end
-
-    def offset : Vect
-      LibCP.circle_shape_get_offset(self)
-    end
-
-    def radius : Float64
-      LibCP.circle_shape_get_radius(self)
-    end
-  end
-
-  class SegmentShape < Shape
-    def initialize(body : Body?, a : Vect, b : Vect, radius : Number = 0)
-      @shape = uninitialized LibCP::SegmentShape
-      LibCP.segment_shape_init(pointerof(@shape), body, a, b, radius)
-      LibCP.shape_set_user_data(self, self.as(Void*))
-    end
-
-    # :nodoc:
-    def to_unsafe : LibCP::Shape*
-      pointerof(@shape).as(LibCP::Shape*)
-    end
-
-    def set_neighbors(prev : Vect, next next_ : Vect)
-      LibCP.segment_shape_set_neighbors(self, prev, next_)
-    end
-
-    def a : Vect
-      LibCP.segment_shape_get_a(self)
-    end
-    def b : Vect
-      LibCP.segment_shape_get_b(self)
-    end
-
-    def normal() : Vect
-      LibCP.segment_shape_get_normal(self)
-    end
-
-    def radius : Float64
-      LibCP.segment_shape_get_radius(self)
-    end
-  end
-
-  class PolyShape < Shape
-    include Enumerable(Vect)
-    include Indexable(Vect)
-
-    def initialize(body : Body?, verts : Array(Vect)|Slice(Vect), transform : Transform = Transform::IDENTITY, radius : Number = 0)
-      @shape = uninitialized LibCP::PolyShape
-      LibCP.poly_shape_init(pointerof(@shape), body, verts.size, verts, transform, radius)
-      LibCP.shape_set_user_data(self, self.as(Void*))
-    end
-    def initialize(body : Body?, verts : Array(Vect)|Slice(Vect), radius : Number)
-      @shape = uninitialized LibCP::PolyShape
-      LibCP.poly_shape_init_raw(pointerof(@shape), body, verts.size, verts, radius)
-      LibCP.shape_set_user_data(self, self.as(Void*))
-    end
-
-    # :nodoc:
-    def to_unsafe : LibCP::Shape*
-      pointerof(@shape).as(LibCP::Shape*)
-    end
-
-    def size : Int32
-      LibCP.poly_shape_get_count(self)
-    end
-
-    def unsafe_at(index : Int32) : Vect
-      LibCP.poly_shape_get_vert(self, index)
-    end
-
-    def radius : Float64
-      LibCP.poly_shape_get_radius(self)
-    end
-  end
-
-  class BoxShape < PolyShape
-    def initialize(body : Body?, width : Number, height : Number, radius : Number = 0)
-      @shape = uninitialized LibCP::PolyShape
-      LibCP.box_shape_init(pointerof(@shape), body, width, height, radius)
-      LibCP.shape_set_user_data(self, self.as(Void*))
-    end
-    def initialize(body : Body?, box : BB, radius : Number = 0)
-      @shape = uninitialized LibCP::PolyShape
-      LibCP.box_shape_init2(pointerof(@shape), body, box, radius)
-      LibCP.shape_set_user_data(self, self.as(Void*))
-    end
-  end
+  # :nodoc:
+  alias Circle = Shape::Circle
+  # :nodoc:
+  alias Segment = Shape::Segment
+  # :nodoc:
+  alias Poly = Shape::Poly
+  # :nodoc:
+  alias Box = Shape::Box
 end

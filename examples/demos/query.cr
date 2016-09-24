@@ -39,13 +39,13 @@ class Query < Demo
     a = CP.v(-length/2.0, 0.0)
     b = CP.v(length/2.0, 0.0)
 
-    body = space.add CP::Body.new(mass, CP.moment_for_segment(mass, a, b, 0.0))
+    body = space.add CP::Body.new(mass, CP::Segment.moment(mass, a, b, 0.0))
     body.position = CP.v(0.0, 100.0)
 
-    space.add @seg = CP::SegmentShape.new(body, a, b, 20.0)
+    space.add @seg = CP::Segment.new(body, a, b, 20.0)
 
     # add a static segment
-    space.add CP::SegmentShape.new(space.static_body, CP.v(0, 300), CP.v(300, 0), 0.0)
+    space.add CP::Segment.new(space.static_body, CP.v(0, 300), CP.v(300, 0), 0.0)
 
     # add a pentagon
     mass = 1.0
@@ -56,19 +56,19 @@ class Query < Demo
       verts << CP.v(30 * Math.cos(angle), 30 * Math.sin(angle))
     end
 
-    body = space.add CP::Body.new(mass, CP.moment_for_poly(mass, verts, CP.vzero, 0.0))
+    body = space.add CP::Body.new(mass, CP::Poly.moment(mass, verts, CP.vzero, 0.0))
     body.position = CP.v(50.0, 30.0)
 
-    space.add CP::PolyShape.new(body, verts, radius: 10)
+    space.add CP::Poly.new(body, verts, radius: 10)
 
     # add a circle
     mass = 1.0
     r = 20.0
 
-    body = space.add CP::Body.new(mass, CP.moment_for_circle(mass, 0.0, r, CP.vzero))
+    body = space.add CP::Body.new(mass, CP::Circle.moment(mass, 0.0, r, CP.vzero))
     body.position = CP.v(100.0, 100.0)
 
-    space.add CP::CircleShape.new(body, r)
+    space.add CP::Circle.new(body, r)
   end
 
   private def short(x : Number)
@@ -88,7 +88,7 @@ class Query < Demo
     radius = 10.0
     draw_segment(start, finish, Color.new(0.0, 1.0, 0.0))
 
-    @message = "Query: Dist(#{short(CP::Vect.dist(start, finish))}) \
+    @message = "Query: Dist(#{short(start.dist finish)}) \
                        Point(#{short(finish)})\n"
 
     if (info = @space.segment_query_first(start, finish, radius))
@@ -101,7 +101,7 @@ class Query < Demo
       # Draw a little red dot on the hit point.
       draw_dot(3.0, info.point, Color.new(1.0, 0.0, 0.0))
 
-      @message += "Segment Query: Dist(#{short(info.alpha * CP::Vect.dist(start, finish))}) \
+      @message += "Segment Query: Dist(#{short(info.alpha * (start.dist finish))}) \
                                   Normal(#{short(info.normal)})"
     else
       @message += "Segment Query (None)"

@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 
-require "./structs"
+require "./vector"
 
 @[Link("chipmunk")]
 lib LibCP
@@ -28,6 +28,8 @@ lib LibCP
   alias HashValue = LibC::SizeT
 
   alias DataPointer = Void*
+
+  alias CollisionID = UInt32
 
   struct HashSet
     entries : UInt32
@@ -43,7 +45,7 @@ lib LibCP
 
   alias SpatialIndexIteratorFunc = (Void*, Void*) ->
 
-  alias SpatialIndexQueryFunc = (Void*, Void*, CP::CollisionID, Void*) -> CP::CollisionID
+  alias SpatialIndexQueryFunc = (Void*, Void*, CollisionID, Void*) -> CollisionID
 
   alias SpatialIndexSegmentQueryFunc = (Void*, Void*, Void*) -> Float64
 
@@ -63,7 +65,7 @@ lib LibCP
     pooled_bins : Void*
     pooled_handles : Array*
     allocated_buffers : Array*
-    stamp : CP::Timestamp
+    stamp : CP::Space::Timestamp
   end
 
   fun space_hash_alloc = cpSpaceHashAlloc() : SpaceHash*
@@ -82,7 +84,7 @@ lib LibCP
     pooled_nodes : Void*
     pooled_pairs : Void*
     allocated_buffers : Array
-    stamp : CP::Timestamp
+    stamp : CP::Space::Timestamp
   end
 
   fun bb_tree_alloc = cpBBTreeAlloc() : BBTree*
@@ -744,9 +746,9 @@ lib LibCP
 
   fun space_set_collision_bias = cpSpaceSetCollisionBias(space : Space*, collision_bias : Float64)
 
-  fun space_get_collision_persistence = cpSpaceGetCollisionPersistence(space : Space*) : CP::Timestamp
+  fun space_get_collision_persistence = cpSpaceGetCollisionPersistence(space : Space*) : CP::Space::Timestamp
 
-  fun space_set_collision_persistence = cpSpaceSetCollisionPersistence(space : Space*, collision_persistence : CP::Timestamp)
+  fun space_set_collision_persistence = cpSpaceSetCollisionPersistence(space : Space*, collision_persistence : CP::Space::Timestamp)
 
   fun space_get_user_data = cpSpaceGetUserData(space : Space*) : DataPointer
 
@@ -999,7 +1001,7 @@ lib LibCP
   struct CollisionInfo
     a : Shape*
     b : Shape*
-    id : CP::CollisionID
+    id : CollisionID
     n : CP::Vect
     count : Int32
     arr : Contact*
@@ -1023,7 +1025,7 @@ lib LibCP
     handler_a : CollisionHandler*
     handler_b : CollisionHandler*
     swapped : Bool
-    stamp : CP::Timestamp
+    stamp : CP::Space::Timestamp
     state : ArbiterState
   end
 
@@ -1122,7 +1124,7 @@ lib LibCP
 
   fun shape_init = cpShapeInit(shape : Shape*, klass : ShapeClass*, body : Body*, mass_info : ShapeMassInfo) : Shape*
 
-  fun collide = cpCollide(a : Shape*, b : Shape*, id : CP::CollisionID, contacts : Contact*) : CollisionInfo
+  fun collide = cpCollide(a : Shape*, b : Shape*, id : CollisionID, contacts : Contact*) : CollisionInfo
 
   fun loop_indexes = cpLoopIndexes(verts : CP::Vect*, count : Int32, start : Int32*, end_ : Int32*)
 
@@ -1287,9 +1289,9 @@ lib LibCP
     sleep_time_threshold : Float64
     collision_slop : Float64
     collision_bias : Float64
-    collision_persistence : CP::Timestamp
+    collision_persistence : CP::Space::Timestamp
     user_data : DataPointer
-    stamp : CP::Timestamp
+    stamp : CP::Space::Timestamp
     curr_dt : Float64
     dynamic_bodies : Array*
     static_bodies : Array*
@@ -1346,7 +1348,7 @@ lib LibCP
 
   fun shape_update_func = cpShapeUpdateFunc(shape : Shape*, unused : Void*)
 
-  fun space_collide_shapes = cpSpaceCollideShapes(a : Shape*, b : Shape*, id : CP::CollisionID, space : Space*) : CP::CollisionID
+  fun space_collide_shapes = cpSpaceCollideShapes(a : Shape*, b : Shape*, id : CollisionID, space : Space*) : CollisionID
 
   fun circle_shape_set_radius = cpCircleShapeSetRadius(shape : Shape*, radius : Float64)
 

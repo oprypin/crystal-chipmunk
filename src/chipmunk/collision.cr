@@ -24,30 +24,32 @@ require "./util"
 
 module CP
   @[Extern]
-  struct ContactPointSetItem
-    property point_a : Vect, point_b : Vect
-    property distance : Float64
-
-    def initialize(@point_a : Vect, @point_b : Vect, @distance : Float64)
-    end
-  end
-
-  @[Extern]
   struct ContactPointSet
-    property count : Int32
-    property normal : Vect
-    @points : ContactPointSetItem[2]
+    @[Extern]
+    struct ContactPoint
+      getter point_a : Vect, point_b : Vect
+      getter distance : Float64
 
-    def initialize(points : Slice(ContactPointSetItem), @normal : Vect)
+      def initialize(@point_a : Vect, @point_b : Vect, @distance : Float64)
+      end
+    end
+
+    getter count : Int32
+    getter normal : Vect
+    @points : ContactPoint[2]
+
+    def initialize(points : Slice(ContactPoint), @normal : Vect)
       @count = points.size
-      @points = uninitialized ContactPointSetItem[2]
+      @points = uninitialized ContactPoint[2]
       points.copy_to(@points, @count)
     end
 
-    def points : Slice(ContactPointSetItem)
+    def points : Slice(ContactPoint)
       @points.to_unsafe.to_slice(@count)
     end
   end
+  # :nodoc:
+  alias ContactPoint = ContactPointSet::ContactPoint
 
   struct Arbiter
     # :nodoc:
@@ -168,6 +170,9 @@ module CP
   end
 
   class CollisionHandler
+    alias CollisionType = LibC::SizeT
+    WILDCARD_COLLISION_TYPE = ~CollisionType.new(0)
+
     getter type_a = CollisionType.new(0)
     getter type_b = CollisionType.new(0)
 
@@ -213,4 +218,9 @@ module CP
     def separate(arbiter : Arbiter, space : Space)
     end
   end
+
+  # :nodoc:
+  alias CollisionType = CollisionHandler::CollisionType
+  # :nodoc:
+  alias WILDCARD_COLLISION_TYPE = CollisionHandler::WILDCARD_COLLISION_TYPE
 end

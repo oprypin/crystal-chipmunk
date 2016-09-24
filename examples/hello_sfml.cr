@@ -16,19 +16,19 @@ gravity = CP.v(0, -100)
 space = CP::Space.new
 space.gravity = gravity
 
-ground = CP::SegmentShape.new(space.static_body, CP.v(-20, 5), CP.v(20, -5), 0.0)
+ground = CP::Segment.new(space.static_body, CP.v(-20, 5), CP.v(20, -5), 0.0)
 ground.friction = 1.0
 space.add(ground)
 
 radius = 5.0
 mass = 1.0
 
-moment = CP.moment_for_circle(mass, 0.0, radius)
+moment = CP::Circle.moment(mass, 0.0, radius)
 
 ball_body = space.add(CP::Body.new(mass, moment))
 ball_body.position = CP.v(0, 15)
 
-ball_shape = space.add(CP::CircleShape.new(ball_body, radius))
+ball_shape = space.add(CP::Circle.new(ball_body, radius))
 ball_shape.friction = 0.7
 
 time_step = 1.0/60.0

@@ -19,31 +19,40 @@
 # SOFTWARE.
 
 
-  # :nodoc:
-  macro _cp_if_overridden(name, cls = nil, &block)
-    {% cls = cls ? cls.resolve : @type %}
-    {% if cls.superclass != Reference %}
-      {% if cls.methods.any? { |meth| meth.name == name.id } %}
-        {{yield}}
-      {% else %}
-        _cp_if_overridden({{name}}, {{cls.superclass}}) {{block}}
-      {% end %}
+# :nodoc:
+macro _cp_if_overridden(name, cls = nil, &block)
+  {% cls = cls ? cls.resolve : @type %}
+  {% if cls.superclass != Reference %}
+    {% if cls.methods.any? { |meth| meth.name == name.id } %}
+      {{yield}}
+    {% else %}
+      _cp_if_overridden({{name}}, {{cls.superclass}}) {{block}}
     {% end %}
-  end
+  {% end %}
+end
 
 
-  # :nodoc:
-  macro _cp_gather(name, f)
-    {% typ = name.type %}
-    {% name = name.var.id %}
+# :nodoc:
+macro _cp_gather(name, f)
+  {% typ = name.type %}
+  {% name = name.var.id %}
 
-    {{f}}
+  {{f}}
 
-    def {% if f.receiver %}{{f.receiver}}.{% end %}{{name}}({{*f.args}}) : Array({{typ}})
-      result = [] of {{typ}}
-      {{f.name}}({{*f.args.map &.internal_name}}) do |item|
-        result << item
-      end
-      result
+  def {% if f.receiver %}{{f.receiver}}.{% end %}{{name}}({{*f.args}}) : Array({{typ}})
+    result = [] of {{typ}}
+    {{f.name}}({{*f.args.map &.internal_name}}) do |item|
+      result << item
     end
+    result
   end
+end
+
+
+# :nodoc:
+macro _cp_extract(from)
+  {% for c in from.resolve.constants %}
+    # :nodoc:
+    {{c}} = {{from}}::{{c}}
+  {% end %}
+end

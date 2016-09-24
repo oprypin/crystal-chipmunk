@@ -37,7 +37,7 @@ class TheoJansen < Demo
 
     # Create segments around the edge of the screen.
     [{1, 1}, {1, -1}, {-1, -1}, {-1, 1}].each_cons(2) do |(a, b)|
-      shape = space.add CP::SegmentShape.new(space.static_body,
+      shape = space.add CP::Segment.new(space.static_body,
         CP.v(320 * a[0], 240 * a[1]), CP.v(320 * b[0], 240 * b[1]), 0.0
       )
       shape.elasticity = 1
@@ -51,18 +51,18 @@ class TheoJansen < Demo
     chassis_mass = 2.0
     a = CP.v(-offset, 0.0)
     b = CP.v(offset, 0.0)
-    chassis = space.add CP::Body.new(chassis_mass, CP.moment_for_segment(chassis_mass, a, b, 0.0))
+    chassis = space.add CP::Body.new(chassis_mass, CP::Segment.moment(chassis_mass, a, b, 0.0))
 
-    shape = space.add CP::SegmentShape.new(chassis, a, b, seg_radius)
-    shape.filter = CP::ShapeFilter.new(1, CP::ALL_CATEGORIES, CP::ALL_CATEGORIES)
+    shape = space.add CP::Segment.new(chassis, a, b, seg_radius)
+    shape.filter = CP::ShapeFilter.new(group: 1)
 
     # make crank
     crank_mass = 1.0
     crank_radius = 13.0
-    crank = space.add CP::Body.new(crank_mass, CP.moment_for_circle(crank_mass, crank_radius, 0.0, CP.vzero))
+    crank = space.add CP::Body.new(crank_mass, CP::Circle.moment(crank_mass, crank_radius, 0.0, CP.vzero))
 
-    shape = space.add CP::CircleShape.new(crank, crank_radius, CP.vzero)
-    shape.filter = CP::ShapeFilter.new(1, CP::ALL_CATEGORIES, CP::ALL_CATEGORIES)
+    shape = space.add CP::Circle.new(crank, crank_radius, CP.vzero)
+    shape.filter = CP::ShapeFilter.new(group: 1)
 
     space.add CP::PivotJoint.new(chassis, crank, CP.vzero, CP.vzero)
 
@@ -76,25 +76,25 @@ class TheoJansen < Demo
       # make leg
       a = CP.vzero
       b = CP.v(0, side)
-      upper_leg = space.add CP::Body.new(leg_mass, CP.moment_for_segment(leg_mass, a, b, 1.0))
+      upper_leg = space.add CP::Body.new(leg_mass, CP::Segment.moment(leg_mass, a, b, 1.0))
       upper_leg.position = CP.v(offset, 0.0)
 
-      shape = space.add CP::SegmentShape.new(upper_leg, a, b, seg_radius)
-      shape.filter = CP::ShapeFilter.new(1, CP::ALL_CATEGORIES, CP::ALL_CATEGORIES)
+      shape = space.add CP::Segment.new(upper_leg, a, b, seg_radius)
+      shape.filter = CP::ShapeFilter.new(group: 1)
 
       space.add CP::PivotJoint.new(chassis, upper_leg, CP.v(offset, 0.0), CP.vzero)
 
       # lower leg
       a = CP.vzero
       b = CP.v(0, -1*side)
-      lower_leg = space.add CP::Body.new(leg_mass, CP.moment_for_segment(leg_mass, a, b, 0.0))
+      lower_leg = space.add CP::Body.new(leg_mass, CP::Segment.moment(leg_mass, a, b, 0.0))
       lower_leg.position = CP.v(offset, -side)
 
-      shape = space.add CP::SegmentShape.new(lower_leg, a, b, seg_radius)
-      shape.filter = CP::ShapeFilter.new(1, CP::ALL_CATEGORIES, CP::ALL_CATEGORIES)
+      shape = space.add CP::Segment.new(lower_leg, a, b, seg_radius)
+      shape.filter = CP::ShapeFilter.new(group: 1)
 
-      shape = space.add CP::CircleShape.new(lower_leg, seg_radius*2.0, b)
-      shape.filter = CP::ShapeFilter.new(1, CP::ALL_CATEGORIES, CP::ALL_CATEGORIES)
+      shape = space.add CP::Circle.new(lower_leg, seg_radius*2.0, b)
+      shape.filter = CP::ShapeFilter.new(group: 1)
       shape.elasticity = 0.0
       shape.friction = 1.0
 

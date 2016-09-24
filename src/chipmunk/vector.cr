@@ -23,6 +23,14 @@
 module CP
   extend self
 
+  def lerp(f1 : Number, f2 : Number, t : Number) : Number
+    (f1 * (1.0 - t)) + (f2 * t)
+  end
+
+  def lerpconst(f1 : Number, f2 : Number, d : Number) : Number
+    f1 + (f2 - f1).clamp(-d, d)
+  end
+
   @[Extern]
   struct Vect
     property x : Float64, y : Float64
@@ -129,16 +137,16 @@ module CP
       v1 + (v2 - v1).clamp(d)
     end
 
-    def self.dist(v1 : Vect, v2 : Vect) : Float64
-      (v1 - v2).length
+    def dist(v2 : Vect) : Float64
+      (self - v2).length
     end
 
-    def self.distsq(v1 : Vect, v2 : Vect) : Float64
-      (v1 - v2).lengthsq
+    def distsq(v2 : Vect) : Float64
+      (self - v2).lengthsq
     end
 
-    def self.near(v1 : Vect, v2 : Vect, dist : Number) : Bool
-      Vect.distsq(v1, v2) < dist*dist
+    def near?(v2 : Vect, dist : Number) : Bool
+      distsq(v2) < dist*dist
     end
 
     def closest_point_on_segment(a : Vect, b : Vect) : Vect
@@ -148,11 +156,11 @@ module CP
     end
   end
 
-  def v(x, y)
+  def v(x, y) : Vect
     Vect.new(x, y)
   end
 
-  def vzero()
+  def vzero() : Vect
     Vect.new(0.0, 0.0)
   end
 
@@ -377,71 +385,4 @@ module CP
       BB.new(@left + v.x, @bottom + v.y, @right + v.x, @top + v.y)
     end
   end
-
-  @[Extern]
-  struct PointQueryInfo
-    @shape : LibCP::Shape*
-    property point : Vect
-    property distance : Float64
-    property gradient : Vect
-
-    def initialize(shape : Shape, @point : Vect, @distance : Float64, @gradient : Vect)
-      @shape = shape.to_unsafe
-    end
-
-    def shape : Shape
-      Shape[@shape]
-    end
-    def shape=(shape : Shape)
-      @shape = shape.to_unsafe
-    end
-    # :nodoc:
-    def shape=(@shape : LibCP::Shape*)
-    end
-  end
-
-  @[Extern]
-  struct SegmentQueryInfo
-    @shape : LibCP::Shape*
-    property point : Vect
-    property normal : Vect
-    property alpha : Float64
-
-    def initialize(shape : Shape, @point : Vect, @normal : Vect, @alpha : Float64)
-      @shape = shape.to_unsafe
-    end
-
-    def shape : Shape
-      Shape[@shape]
-    end
-    def shape=(shape : Shape)
-      @shape = shape.to_unsafe
-    end
-  end
-
-  @[Extern]
-  struct ShapeFilter
-    property group : Group
-    property categories : Bitmask
-    property mask : Bitmask
-
-    def initialize(group : Int = NO_GROUP, categories : Int = ALL_CATEGORIES, mask : Int = ALL_CATEGORIES)
-      @group = Group.new(group)
-      @categories = Bitmask.new(categories)
-      @mask = Bitmask.new(mask)
-    end
-
-    ALL = new(NO_GROUP, ALL_CATEGORIES, ALL_CATEGORIES)
-    NONE = new(NO_GROUP, ~ALL_CATEGORIES, ~ALL_CATEGORIES)
-  end
-
-  alias CollisionID = UInt32
-  alias CollisionType = LibC::SizeT
-  alias Group = LibC::SizeT
-  alias Bitmask = UInt32
-  alias Timestamp = UInt32
-
-  NO_GROUP = Group.new(0)
-  ALL_CATEGORIES = ~Bitmask.new(0)
-  WILDCARD_COLLISION_TYPE = ~CollisionType.new(0)
 end

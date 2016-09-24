@@ -22,6 +22,8 @@
 
 module CP
   class Space
+    alias Timestamp = UInt32
+
     def initialize()
       @space = uninitialized LibCP::Space
       @in_step = false

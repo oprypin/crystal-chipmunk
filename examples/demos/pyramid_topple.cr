@@ -39,7 +39,7 @@ class PyramidTopple < Demo
     space.collision_slop = 0.5
 
     # Add a floor.
-    shape = space.add CP::SegmentShape.new(space.static_body, CP.v(-600, -240), CP.v(600, -240), 0.0)
+    shape = space.add CP::Segment.new(space.static_body, CP.v(-600, -240), CP.v(600, -240), 0.0)
     shape.elasticity = 1.0
     shape.friction = 1.0
 
@@ -67,15 +67,15 @@ class PyramidTopple < Demo
   def add_domino(pos, flipped = false)
     mass = 1.0
     radius = 0.5
-    moment = CP.moment_for_box(mass, WIDTH, HEIGHT)
+    moment = CP::Box.moment(mass, WIDTH, HEIGHT)
 
     body = @space.add CP::Body.new(mass, moment)
     body.position = pos
 
     shape = if flipped
-      CP::BoxShape.new(body, HEIGHT, WIDTH, 0.0)
+      CP::Box.new(body, HEIGHT, WIDTH, 0.0)
     else
-      CP::BoxShape.new(body, WIDTH - radius*2, HEIGHT, radius)
+      CP::Box.new(body, WIDTH - radius*2, HEIGHT, radius)
     end
     @space.add shape
     shape.elasticity = 0.0

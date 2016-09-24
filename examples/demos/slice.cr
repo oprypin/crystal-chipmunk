@@ -41,7 +41,7 @@ class Sliced < Demo
     space.sleep_time_threshold = 0.5
     space.collision_slop = 0.5
 
-    shape = space.add CP::SegmentShape.new(space.static_body, CP.v(-1000, -240), CP.v(1000, -240))
+    shape = space.add CP::Segment.new(space.static_body, CP.v(-1000, -240), CP.v(1000, -240))
     shape.elasticity = 1.0
     shape.friction = 1.0
     shape.filter = NOGRAB_FILTER
@@ -49,11 +49,11 @@ class Sliced < Demo
     width = 200.0
     height = 300.0
     mass = width * height * DENSITY
-    moment = CP.moment_for_box(mass, width, height)
+    moment = CP::Box.moment(mass, width, height)
 
     body = space.add CP::Body.new(mass, moment)
 
-    shape = space.add CP::BoxShape.new(body, width, height)
+    shape = space.add CP::Box.new(body, width, height)
     shape.friction = 0.6
   end
 
@@ -66,7 +66,7 @@ class Sliced < Demo
       else
         # Check that the slice was complete by checking that the endpoints aren't in the sliced shape.
         @space.segment_query(a = @slice_start, b = @mouse, 0.0, GRAB_FILTER).each do |info|
-          shape = info.shape.as CP::PolyShape
+          shape = info.shape.as CP::Poly
 
           if shape.point_query(a).distance > 0 && shape.point_query(b).distance > 0
             # Clipping plane normal and distance.
@@ -116,9 +116,9 @@ class Sliced < Demo
       end
     end
 
-    centroid = CP.centroid_for_poly(clipped)
-    mass = CP.area_for_poly(clipped) * DENSITY
-    moment = CP.moment_for_poly(mass, clipped, -centroid)
+    centroid = CP::Poly.centroid(clipped)
+    mass = CP::Poly.area(clipped) * DENSITY
+    moment = CP::Poly.moment(mass, clipped, -centroid)
 
     new_body = @space.add CP::Body.new(mass, moment)
     new_body.position = centroid
@@ -126,7 +126,7 @@ class Sliced < Demo
     new_body.angular_velocity = body.angular_velocity
 
     transform = CP::Transform.translate(-centroid)
-    new_shape = @space.add CP::PolyShape.new(new_body, clipped, transform)
+    new_shape = @space.add CP::Poly.new(new_body, clipped, transform)
     # Copy whatever properties you have set on the original shape that are important
     new_shape.friction = shape.friction
   end

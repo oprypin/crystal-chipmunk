@@ -1,7 +1,7 @@
 require "./chipmunk"
 
 module CP
-  class CircleShape < Shape
+  class Shape::Circle < Shape
     def radius=(radius : Number)
       LibCP.circle_shape_set_radius(self, radius)
     end
@@ -11,7 +11,7 @@ module CP
     end
   end
 
-  class SegmentShape < Shape
+  class Shape::Segment < Shape
     def set_endpoints(a : Vect, b : Vect)
       LibCP.segment_shape_set_endpoints(self, a, b)
     end
@@ -21,7 +21,7 @@ module CP
     end
   end
 
-  class PolyShape < Shape
+  class Shape::Poly < Shape
     def set_verts(verts : Array(Vect)|Slice(Vect), transform : Transform = Transform::IDENTITY)
       LibCP.poly_shape_set_verts(self, verts.size, verts, transform)
     end

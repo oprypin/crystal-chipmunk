@@ -40,7 +40,7 @@ class Sticky < Demo
 
     # Create segments around the edge of the screen.
     [{1, 1}, {1, -1}, {-1, -1}, {-1, 1}, {1, 1}].each_cons(2) do |(a, b)|
-      shape = space.add CP::SegmentShape.new(space.static_body,
+      shape = space.add CP::Segment.new(space.static_body,
         CP.v(340 * a[0], 260 * a[1]), CP.v(340 * b[0], 260 * b[1]), 20.0
       )
       shape.elasticity = 1
@@ -52,10 +52,10 @@ class Sticky < Demo
       mass = 0.15
       radius = 10.0
 
-      body = space.add CP::Body.new(mass, CP.moment_for_circle(mass, 0.0, radius))
+      body = space.add CP::Body.new(mass, CP::Circle.moment(mass, 0.0, radius))
       body.position = CP.v(random.rand(-150.0..150.0), random.rand(-150.0..150.0))
 
-      shape = space.add CP::CircleShape.new(body, radius + STICK_SENSOR_THICKNESS)
+      shape = space.add CP::Circle.new(body, radius + STICK_SENSOR_THICKNESS)
       shape.friction = 0.9
       shape.collision_type = COLLISION_TYPE_STICKY
     end
@@ -77,7 +77,7 @@ class Sticky < Demo
       contacts.points.each_index do |i|
         # Sink the contact points into the surface of each shape.
         pt = contacts.points[i]
-        contacts.points[i] = CP::ContactPointSetItem.new(
+        contacts.points[i] = CP::ContactPoint.new(
           pt.point_a - contacts.normal * STICK_SENSOR_THICKNESS,
           pt.point_b + contacts.normal * STICK_SENSOR_THICKNESS,
           pt.distance

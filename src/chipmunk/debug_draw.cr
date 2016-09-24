@@ -51,6 +51,7 @@ module CP
         DRAW_CONSTRAINTS = 1 << 1
         DRAW_COLLISION_POINTS = 1 << 2
       end
+      _cp_extract Flags
 
       @[Extern]
       struct Color
@@ -85,11 +86,11 @@ module CP
             fill_color = color_for_shape(shape)
 
             case shape
-            when CircleShape
+            when Shape::Circle
               draw_circle(shape.@shape.tc, body.@body.a, shape.radius, SHAPE_OUTLINE_COLOR, fill_color)
-            when SegmentShape
+            when Shape::Segment
               draw_fat_segment(shape.@shape.ta, shape.@shape.tb, shape.radius, SHAPE_OUTLINE_COLOR, fill_color)
-            when PolyShape
+            when Shape::Poly
               count = shape.size
               planes = shape.@shape.planes
               verts = Slice(Vect).new(count) { |i|
@@ -106,34 +107,34 @@ module CP
             body_b = constraint.body_b
 
             case constraint
-            when PinJoint
+            when Constraint::PinJoint
               a = body_a.@body.transform.transform_point(constraint.anchor_a)
               b = body_b.@body.transform.transform_point(constraint.anchor_b)
 
               draw_dot(5.0, a, CONSTRAINT_COLOR)
               draw_dot(5.0, b, CONSTRAINT_COLOR)
               draw_segment(a, b, CONSTRAINT_COLOR)
-            when SlideJoint
+            when Constraint::SlideJoint
               a = body_a.@body.transform.transform_point(constraint.anchor_a)
               b = body_b.@body.transform.transform_point(constraint.anchor_b)
 
               draw_dot(5.0, a, CONSTRAINT_COLOR)
               draw_dot(5.0, b, CONSTRAINT_COLOR)
               draw_segment(a, b, CONSTRAINT_COLOR)
-            when PivotJoint
+            when Constraint::PivotJoint
               a = body_a.@body.transform.transform_point(constraint.anchor_a)
               b = body_b.@body.transform.transform_point(constraint.anchor_b)
 
               draw_dot(5.0, a, CONSTRAINT_COLOR)
               draw_dot(5.0, b, CONSTRAINT_COLOR)
-            when GrooveJoint
+            when Constraint::GrooveJoint
               a = body_a.@body.transform.transform_point(constraint.groove_a)
               b = body_a.@body.transform.transform_point(constraint.groove_b)
               c = body_b.@body.transform.transform_point(constraint.anchor_b)
 
               draw_dot(5.0, c, CONSTRAINT_COLOR)
               draw_segment(a, b, CONSTRAINT_COLOR)
-            when DampedSpring
+            when Constraint::DampedSpring
               a = body_a.@body.transform.transform_point(constraint.anchor_a)
               b = body_b.@body.transform.transform_point(constraint.anchor_b)
 
