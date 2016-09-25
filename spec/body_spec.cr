@@ -192,8 +192,8 @@ describe Body do
     s = Space.new()
     b1 = Body.new(1, 1)
     b2 = Body.new(2, 2)
-    c1 = CircleShape.new(b1, 10)
-    c2 = CircleShape.new(b2, 10)
+    c1 = Circle.new(b1, 10)
+    c2 = Circle.new(b2, 10)
     s.add b1, b2, c1, c2
     s.step(1)
 
@@ -220,8 +220,8 @@ describe Body do
   test "shapes" do
     s = Space.new()
     b1 = s.add Body.new(1, 1)
-    s1 = s.add CircleShape.new(b1, 3)
-    s2 = s.add SegmentShape.new(b1, v(0, 0), v(1, 2), 1)
+    s1 = s.add Circle.new(b1, 3)
+    s2 = s.add Segment.new(b1, v(0, 0), v(1, 2), 1)
 
     assert b1.shapes.includes? s1
     assert b1.shapes.includes? s2

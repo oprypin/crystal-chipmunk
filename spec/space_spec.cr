@@ -9,8 +9,8 @@ class TestSpace < Space
     @b1.position = v(10, 0)
     @b2.position = v(20, 0)
 
-    @s1 = CircleShape.new(b1, 5)
-    @s2 = CircleShape.new(b2, 10)
+    @s1 = Circle.new(b1, 5)
+    @s2 = Circle.new(b2, 10)
 
     add b1, b2, s1, s2
   end
@@ -73,11 +73,11 @@ describe Space do
     assert s.bodies == [b]
     assert s.shapes.empty?
 
-    c1 = s.add CircleShape.new(b, 10)
+    c1 = s.add Circle.new(b, 10)
     assert s.bodies == [b]
     assert s.shapes == [c1]
 
-    c2 = s.add CircleShape.new(b, 15)
+    c2 = s.add Circle.new(b, 15)
     assert s.shapes.size == 2
     assert s.shapes.includes? c1
     assert s.shapes.includes? c2
@@ -98,13 +98,13 @@ describe Space do
     s = Space.new()
 
     b1 = s.add Body.new(1, 2)
-    c1 = s.add CircleShape.new(b1, 2)
+    c1 = s.add Circle.new(b1, 2)
 
     b2 = s.add Body.new(1, 2)
-    c2 = s.add CircleShape.new(b2, 2)
+    c2 = s.add Circle.new(b2, 2)
 
     b = Body.new(1, 2)
-    c = CircleShape.new(b, 2)
+    c = Circle.new(b, 2)
 
     handler = s.add_collision_handler(CollisionType.new(0), CollisionType.new(0), AddRemoveHandler.new(b, c))
 
@@ -133,7 +133,7 @@ describe Space do
   test "point_query_nearest with shape filter" do
     s = Space.new()
     b1 = Body.new(1, 1)
-    s1 = s.add CircleShape.new(b1, 10)
+    s1 = s.add Circle.new(b1, 10)
 
     [
       {c1: 0b00, m1: 0b00, c2: 0b00, m2: 0b00, hit: false},
@@ -147,8 +147,8 @@ describe Space do
       {c1: 0b01, m1: 0b10, c2: 0b10, m2: 0b01, hit: true},
       {c1: 0b01, m1: 0b11, c2: 0b00, m2: 0b10, hit: false},
     ].each do |test|
-      f1 = ShapeFilter.new(NO_GROUP, test[:c1], test[:m1])
-      f2 = ShapeFilter.new(NO_GROUP, test[:c2], test[:m2])
+      f1 = ShapeFilter.new(categories: test[:c1], mask: test[:m1])
+      f2 = ShapeFilter.new(categories: test[:c2], mask: test[:m2])
       s1.filter = f1
       hit = s.point_query_nearest(v(0, 0), 0, f2)
       if test[:hit]
@@ -163,13 +163,13 @@ describe Space do
     s = Space.new()
     b1 = Body.new(1, 1)
     b1.position = v(19, 0)
-    s1 = s.add CircleShape.new(b1, 10)
+    s1 = s.add Circle.new(b1, 10)
 
     b2 = Body.new(1, 1)
     b2.position = v(0, 0)
-    s2 = s.add CircleShape.new(b2, 10)
-    s1.filter = ShapeFilter.new(NO_GROUP, 0b10, 0b01)
-    hits = s.point_query(v(23, 0), 0, ShapeFilter.new(NO_GROUP, 0b01, 0b10))
+    s2 = s.add Circle.new(b2, 10)
+    s1.filter = ShapeFilter.new(categories: 0b10, mask: 0b01)
+    hits = s.point_query(v(23, 0), 0, ShapeFilter.new(categories: 0b01, mask: 0b10))
 
     assert hits.size == 1
     assert hits[0].shape == s1
@@ -197,7 +197,7 @@ describe Space do
     s = Space.new()
     b1 = Body.new(1, 1)
     b1.position = v(19, 0)
-    s1 = CircleShape.new(b1, 10)
+    s1 = Circle.new(b1, 10)
     s.add s1
 
     hit = s.point_query_nearest(v(23, 0))
@@ -223,11 +223,11 @@ describe Space do
 
     b1 = Body.new(1, 1)
     b1.position = v(19, 0)
-    s1 = s.add CircleShape.new(b1, 10)
+    s1 = s.add Circle.new(b1, 10)
 
     b2 = Body.new(1, 1)
     b2.position = v(0, 0)
-    s2 = s.add CircleShape.new(b2, 10)
+    s2 = s.add Circle.new(b2, 10)
 
     bb = BB.new(-7, -7, 7, 7)
     hits = s.bb_query(bb)
@@ -240,7 +240,7 @@ describe Space do
     space = TestSpace.new()
 
     b = Body.new_kinematic()
-    s = CircleShape.new(b, 2)
+    s = Circle.new(b, 2)
     b.position = v(20, 1)
 
     hits = space.shape_query(s)
@@ -255,7 +255,7 @@ describe Space do
 
     b = Body.new_kinematic()
     b.position = v(-50, -50)
-    c = s.add CircleShape.new(b, 10)
+    c = s.add Circle.new(b, 10)
 
     hit = s.point_query_nearest(v(-50, -50))
     assert hit && hit.shape == c
@@ -268,7 +268,7 @@ describe Space do
     s = Space.new()
 
     b = Body.new_kinematic()
-    c = s.add CircleShape.new(b, 10)
+    c = s.add Circle.new(b, 10)
 
     b.position = v(-50, -50)
     hit = s.point_query_nearest(v(-50, -55))
@@ -282,7 +282,7 @@ describe Space do
   test "reindex_shapes_for body" do
     s = Space.new()
     b = Body.new_static()
-    c = s.add CircleShape.new(b, 10)
+    c = s.add Circle.new(b, 10)
 
     b.position = v(-50, -50)
     hit = s.point_query_nearest(v(-50, -55))
@@ -296,7 +296,7 @@ describe Space do
   test "reindex_static" do
     s = Space.new()
     b = Body.new_static()
-    c = s.add CircleShape.new(b, 10)
+    c = s.add Circle.new(b, 10)
 
     b.position = v(-50, -50)
     hit = s.point_query_nearest(v(-50, -55))
@@ -310,10 +310,10 @@ describe Space do
     s = Space.new()
     b1 = s.add Body.new(10, 1000)
     b1.position = v(20, 20)
-    c1 = s.add CircleShape.new(b1, 10)
+    c1 = s.add Circle.new(b1, 10)
 
     b2 = Body.new_static()
-    s2 = s.add SegmentShape.new(b2, v(-10, 0), v(10, 0), 1)
+    s2 = s.add Segment.new(b2, v(-10, 0), v(10, 0), 1)
 
     s2.set_endpoints(v(-10, 0), v(100, 0))
     s.gravity = v(0, -100)
@@ -340,11 +340,11 @@ describe Space do
 
     b1 = Body.new(1, 1)
     b1.position = v(19, 0)
-    s1 = s.add CircleShape.new(b1, 10)
+    s1 = s.add Circle.new(b1, 10)
 
     b2 = Body.new(1, 1)
     b2.position = v(0, 0)
-    s2 = s.add CircleShape.new(b2, 10)
+    s2 = s.add Circle.new(b2, 10)
 
     hits = s.segment_query(v(-13, 0), v(131, 0))
 
@@ -368,11 +368,11 @@ describe Space do
 
     b1 = Body.new(1, 1)
     b1.position = v(19, 0)
-    s1 = s.add CircleShape.new(b1, 10)
+    s1 = s.add Circle.new(b1, 10)
 
     b2 = Body.new(1, 1)
     b2.position = v(0, 0)
-    s2 = s.add CircleShape.new(b2, 10)
+    s2 = s.add Circle.new(b2, 10)
 
     hit = s.segment_query_first(v(-13, 0), v(131, 0))
     assert hit
@@ -390,7 +390,7 @@ describe Space do
 
     b = Body.new_kinematic()
     b.position = v(-50, -50)
-    c = s.add CircleShape.new(b, 10)
+    c = s.add Circle.new(b, 10)
 
     hit = s.segment_query_first(v(-70, -50), v(-30, -50))
     assert hit && hit.shape == c
@@ -403,9 +403,9 @@ describe Space do
     test "begin" do
       s = Space.new()
       b1 = Body.new(1, 1)
-      c1 = CircleShape.new(b1, 10)
+      c1 = Circle.new(b1, 10)
       b2 = Body.new(1, 1)
-      c2 = CircleShape.new(b2, 10)
+      c2 = Circle.new(b2, 10)
       s.add b1, c1, b2, c2
 
       h = s.add_collision_handler(0, 0, BeginHandler.new)
@@ -421,10 +421,10 @@ describe Space do
     test "pre_solve" do
       s = Space.new()
       b1 = Body.new(1, 1)
-      c1 = CircleShape.new(b1, 10)
+      c1 = Circle.new(b1, 10)
       c1.collision_type = 1
       b2 = Body.new(1, 1)
-      c2 = CircleShape.new(b2, 10)
+      c2 = Circle.new(b2, 10)
       s.add b1, c1, b2, c2
 
       h = s.add_collision_handler(0, 1, PreSolveHandler.new)
@@ -446,11 +446,11 @@ describe Space do
       s = Space.new()
 
       b1 = Body.new(1, 1)
-      c1 = CircleShape.new(b1, 10)
+      c1 = Circle.new(b1, 10)
       b1.position = v(9, 11)
 
       b2 = Body.new_static()
-      c2 = CircleShape.new(b2, 10)
+      c2 = Circle.new(b2, 10)
       b2.position = v(0, 0)
 
       s.add b1, c1, b2, c2
@@ -468,9 +468,9 @@ describe Space do
     test "wildcard" do
       s = Space.new()
       b1 = Body.new(1, 1)
-      c1 = CircleShape.new(b1, 10)
+      c1 = Circle.new(b1, 10)
       b2 = Body.new(1, 1)
-      c2 = CircleShape.new(b2, 10)
+      c2 = Circle.new(b2, 10)
       s.add b1, c1, b2, c2
 
       h = s.add_collision_handler(1, PreSolveHandler.new)
@@ -487,10 +487,10 @@ describe Space do
     test "default" do
       s = Space.new()
       b1 = Body.new(1, 1)
-      c1 = CircleShape.new(b1, 10)
+      c1 = Circle.new(b1, 10)
       c1.collision_type = 1
       b2 = Body.new(1, 1)
-      c2 = CircleShape.new(b2, 10)
+      c2 = Circle.new(b2, 10)
       c2.collision_type = 2
       s.add b1, c1, b2, c2
 
@@ -504,7 +504,7 @@ describe Space do
 end
 
 class AddRemoveHandler < CollisionHandler
-  def initialize(@b : Body, @c : CircleShape)
+  def initialize(@b : Body, @c : Circle)
   end
 
   def pre_solve(arbiter, space)
@@ -571,7 +571,7 @@ describe Space::DebugDraw do
     s = Space.new()
 
     b1 = s.add Body.new(1, 3)
-    s1 = s.add CircleShape.new(b1, 5)
+    s1 = s.add Circle.new(b1, 5)
     s.step(1)
     draw = TestDebugDraw.new()
 

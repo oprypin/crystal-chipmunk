@@ -14,7 +14,7 @@ describe ShapeFilter do
   end
 
   test "constants" do
-    assert ALL_CATEGORIES == 0xffffffff
+    assert ShapeFilter::ALL_CATEGORIES == 0xffffffff
     assert ShapeFilter::ALL == ShapeFilter.new(0, 0xffffffff, 0xffffffff)
     assert ShapeFilter::NONE == ShapeFilter.new(0, 0, 0)
   end

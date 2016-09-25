@@ -1,3 +1,3 @@
-require "../src/unsafe"
+require "../src/chipmunk"
 require "spec_assert"
 include CP

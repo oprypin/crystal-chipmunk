@@ -51,7 +51,7 @@ describe BB do
     assert bb1.center == v(5, 5)
     assert bb1.area() == 100
 
-    assert bb1.merged_area(bb2) == 400
+    assert bb1.merge(bb2).area() == 400
 
     assert bb2.segment_query(v1, v2) == Float64::INFINITY
     assert bb1.segment_query(v(-1, 1), v(99, 1)) == 0.01
