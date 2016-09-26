@@ -24,20 +24,33 @@ require "./util"
 module CP
   # Chipmunk's rigid body type.
   #
-  # Rigid bodies hold the physical properties of an object like its mass, and position and velocity
-  # of its center of gravity. They don't have an shape on their own.
+  # Rigid bodies hold the physical properties of an object like its mass, and position and
+  # velocity of its center of gravity. They don't have an shape on their own.
   # They are given a shape by creating collision shapes (`Shape`) that point to the body.
+  #
+  # Use forces to modify the rigid bodies if possible. This is likely to be
+  # the most stable.
+  #
+  # Modifying a body's velocity shouldn't necessarily be avoided, but
+  # applying large changes can cause strange results in the simulation.
+  # Experiment freely, but be warned.
+  #
+  # Don't modify a body's position every step unless you really know what
+  # you are doing. Otherwise you're likely to get the position/velocity badly
+  # out of sync.
   class Body
     enum Type
       # A dynamic body is one that is affected by gravity, forces, and collisions.
       # This is the default body type.
       DYNAMIC
-      # A kinematic body is an infinite mass, user controlled body that is not affected by gravity, forces or collisions.
-      # Instead the body only moves based on it's velocity.
-      # Dynamic bodies collide normally with kinematic bodies, though the kinematic body will be unaffected.
-      # Collisions between two kinematic bodies, or a kinematic body and a static body produce collision callbacks, but no collision response.
+      # A kinematic body is an infinite mass, user controlled body that is not affected
+      # by gravity, forces or collisions. Instead the body only moves based on its velocity.
+      # Dynamic bodies collide normally with kinematic bodies, though the kinematic body
+      # will be unaffected. Collisions between two kinematic bodies, or a kinematic body
+      # and a static body produce collision callbacks, but no collision response.
       KINEMATIC
-      # A static body is a body that never (or rarely) moves. If you move a static body, you must call one of the `Space` reindex functions.
+      # A static body is a body that never (or rarely) moves. If you move a static body,
+      # you must call one of the `Space` reindex functions.
       # Chipmunk uses this information to optimize the collision detection.
       # Static bodies do not produce collision callbacks when colliding with other static bodies.
       STATIC
@@ -58,6 +71,23 @@ module CP
       nil
     }
 
+    # Create a new dynamic `Body`.
+    #
+    # Guessing the mass for a body is usually fine, but guessing a moment
+    # of inertia can lead to a very poor simulation so it's recommended to
+    # use Chipmunk's moment calculations to estimate the moment for you.
+    #
+    # There are two ways to set up a dynamic body. The easiest option is to
+    # create a body with a mass and moment of 0, and set the mass or
+    # density of each collision shape added to the body. Chipmunk will
+    # automatically calculate the mass, moment of inertia, and center of
+    # gravity for you. This is probably preferred in most cases.
+    #
+    # The other option is to set the mass of the body when it's created,
+    # and leave the mass of the shapes added to it as 0.0. This approach is
+    # more flexible, but is not as easy to use. Don't set the mass of both
+    # the body and the shapes. If you do so, it will recalculate and
+    # overwite your custom mass value when the shapes are added to the body.
     def initialize(mass : Number = 0, moment : Number = 0)
       @body = uninitialized LibCP::Body
       LibCP.body_init(self, mass, moment)
@@ -66,13 +96,13 @@ module CP
       _cp_if_overridden :update_position { LibCP.body_set_position_update_func(self, @@update_position) }
     end
 
-    # Allocate and initialize a `Body`, and set it as a kinematic body.
+    # Create a `Body`, and set it as a kinematic body.
     def self.new_kinematic() : self
       body = self.new
       body.type = Type::KINEMATIC
       body
     end
-    # Allocate and initialize a `Body`, and set it as a static body.
+    # Create a `Body`, and set it as a static body.
     def self.new_static() : self
       body = self.new
       body.type = Type::STATIC
@@ -111,6 +141,13 @@ module CP
       LibCP.body_sleep(self)
     end
     # Force a body to fall asleep immediately along with other bodies in a group.
+    #
+    # When objects in Chipmunk sleep, they sleep as a group of all objects
+    # that are touching or jointed together. When an object is woken up,
+    # all of the objects in its group are woken up.
+    # `sleep_with_group` allows you group sleeping objects together. If you pass a
+    # sleeping body for group, body will be awoken when group is awoken. You can use
+    # this to initialize levels and start stacks of objects in a pre-sleeping state.
     def sleep_with_group(group : Body)
       raise "Body not added to space" if !LibCP.body_get_space(self)
       LibCP.body_sleep_with_group(self, group)
@@ -122,6 +159,11 @@ module CP
     end
 
     # The type of the body.
+    #
+    # When changing a body to a dynamic body, the mass and moment of
+    # inertia are recalculated from the shapes added to the body. Custom
+    # calculated moments of inertia are not preseved when changing types.
+    # This function cannot be called directly in a collision callback.
     def type : Type
       LibCP.body_get_type(self)
     end
@@ -143,6 +185,8 @@ module CP
     end
 
     # The moment of inertia of the body.
+    #
+    # The moment is like the rotational mass of a body.
     def moment : Float64
       LibCP.body_get_moment(self)
     end
@@ -150,7 +194,11 @@ module CP
       LibCP.body_set_moment(self, moment)
     end
 
-    # The position of a body.
+    # The position of the body.
+    #
+    # When changing the position you may also want to call `Space#reindex_shapes_for(body)`
+    # to update the collision  detection information for the attached shapes if you plan
+    # to make any queries against the space.
     def position : Vect
       LibCP.body_get_position(self)
     end
@@ -159,6 +207,9 @@ module CP
     end
 
     # The offset of the center of gravity in body local coordinates.
+    #
+    # The default value is (0, 0), meaning the center of gravity is the
+    # same as the position of the body.
     def center_of_gravity : Vect
       LibCP.body_get_center_of_gravity(self)
     end
@@ -166,7 +217,7 @@ module CP
       LibCP.body_set_center_of_gravity(self, center_of_gravity)
     end
 
-    # The velocity of the body.
+    # Linear velocity of the center of gravity of the body.
     def velocity : Vect
       LibCP.body_get_velocity(self)
     end
@@ -174,7 +225,9 @@ module CP
       LibCP.body_set_velocity(self, velocity)
     end
 
-    # The force applied to the body for the next time step.
+    # Force applied to the center of gravity of the body.
+    #
+    # This value is reset for every time step.
     def force : Vect
       LibCP.body_get_force(self)
     end
@@ -182,7 +235,12 @@ module CP
       LibCP.body_set_force(self, force)
     end
 
-    # The angle of the body.
+    # Rotation of the body in radians.
+    #
+    # When changing the rotation you may also want to call `Space.reindex_shapes_for(body)`
+    # to update the collision detection information for the attached shapes if you plan to
+    # make any queries against the space.
+    # A body rotates around its center of gravity, not its position.
     def angle : Float64
       LibCP.body_get_angle(self)
     end
@@ -190,7 +248,7 @@ module CP
       LibCP.body_set_angle(self, angle)
     end
 
-    # The angular velocity of the body.
+    # The angular velocity of the body in radians per second.
     def angular_velocity : Float64
       LibCP.body_get_angular_velocity(self)
     end
@@ -198,7 +256,9 @@ module CP
       LibCP.body_set_angular_velocity(self, angular_velocity)
     end
 
-    # The torque applied to the body for the next time step.
+    # The torque applied to the body.
+    #
+    # This value is reset for every time step.
     def torque : Float64
       LibCP.body_get_torque(self)
     end
@@ -230,6 +290,13 @@ module CP
     end
 
     # Apply an impulse to a body. Both the impulse and point are expressed in world coordinates.
+    #
+    # An impulse is a very large force applied over a very
+    # short period of time. Some examples are a ball hitting a wall or
+    # cannon firing. Chipmunk treats impulses as if they occur
+    # instantaneously by adding directly to the velocity of an object.
+    # Both impulses and forces are affected the mass of an object. Doubling
+    # the mass of the object will halve the effect.
     def apply_impulse_at_world_point(impulse : Vect, point : Vect)
       LibCP.body_apply_impulse_at_world_point(self, impulse, point)
     end
@@ -239,6 +306,10 @@ module CP
     end
 
     # Get the velocity on a body (in world units) at a point on the body in world coordinates.
+    #
+    # It's often useful to know the absolute velocity of a point on the
+    # surface of a body since the angular velocity affects everything
+    # except the center of gravity.
     def velocity_at_world_point(point : Vect) : Vect
       LibCP.body_get_velocity_at_world_point(self, point)
     end
@@ -265,13 +336,17 @@ module CP
       end
     {% end %}
 
-    # Used to update a body's velocity (can be overridden in a subclass).
+    # Called each time step to update a body's velocity (can be overridden in a subclass).
+    #
+    # Updates the velocity of the body using Euler integration.
     def update_velocity(gravity : Vect, damping : Number, dt : Number)
       LibCP.body_update_velocity(self, gravity, damping, dt)
     end
-    # Used to update a body's position (can be overridden in a subclass).
+    # Called each time step to update a body's position (can be overridden in a subclass).
     #
-    # NOTE: It's not generally recommended to override this unless you call `super`.
+    # Updates the position of the body using Euler integration.
+    #
+    # It's not generally recommended to override this unless you call `super`.
     def update_position(dt : Number)
       LibCP.body_update_position(self, dt)
     end

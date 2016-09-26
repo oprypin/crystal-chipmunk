@@ -22,6 +22,10 @@
 require "./util"
 
 module CP
+  # A constraint is something that describes how two bodies interact with
+  # each other (how they constrain each other). Constraints can be simple
+  # joints that allow bodies to pivot around each other like the bones in your
+  # body, or they can be more abstract like the gear joint or motors.
   abstract class Constraint
     @@pre_solve : LibCP::ConstraintPreSolveFunc =
     ->(constraint : LibCP::Constraint*, space : LibCP::Space*) {
@@ -34,6 +38,7 @@ module CP
       nil
     }
 
+    # :nodoc:
     abstract def to_unsafe : LibCP::Constraint
 
     # :nodoc:
@@ -109,7 +114,11 @@ module CP
       LibCP.constraint_set_collide_bodies(self, collide_bodies)
     end
 
-    # Get the last impulse applied by this constraint.
+    # Get the most recent impulse applied by this constraint.
+    #
+    # To convert this to a force, divide by the timestep passed to
+    # `Space#step`. You can use this to implement breakable joints to check
+    # if the force they attempted to apply exceeded a certain threshold.
     def impulse : Float64
       LibCP.constraint_get_impulse(self)
     end
@@ -123,6 +132,7 @@ module CP
     def post_solve(space : Space)
     end
 
+    # Keeps the angular velocity ratio of a pair of bodies constant.
     class GearJoint < Constraint
       def initialize(a : Body, b : Body, phase : Number, ratio : Number)
         @constraint = uninitialized LibCP::GearJoint
@@ -154,7 +164,13 @@ module CP
       end
     end
 
+    # Similar to a pivot joint, but one of the anchors is
+    # on a linear slide instead of being fixed.
     class GrooveJoint < Constraint
+      # The groove goes from *groove_a* to *groove_b* on body *a*, and the pivot
+      # is attached to *anchor_b* on body *b*.
+      #
+      # All coordinates are body local.
       def initialize(a : Body, b : Body, groove_a : Vect, groove_b : Vect, anchor_b : Vect)
         @constraint = uninitialized LibCP::GrooveJoint
         LibCP.groove_joint_init(pointerof(@constraint), a, b, groove_a, groove_b, anchor_b)
@@ -193,7 +209,14 @@ module CP
       end
     end
 
+    # Keeps the anchor points at a set distance from one another.
     class PinJoint < Constraint
+      # *a* and *b* are the two bodies to connect, and *anchor_a* and *anchor_b*
+      # arethe anchor points on those bodies.
+      #
+      # The distance between the two anchor points is measured when the joint
+      # is created. If you want to set a specific distance, use the setter
+      # function to override it.
       def initialize(a : Body, b : Body, anchor_a : Vect, anchor_b : Vect)
         @constraint = uninitialized LibCP::PinJoint
         LibCP.pin_joint_init(pointerof(@constraint), a, b, anchor_a, anchor_b)
@@ -232,7 +255,10 @@ module CP
       end
     end
 
+    # Allows two objects to pivot about a single point.
     class PivotJoint < Constraint
+      # *a* and *b* are the two bodies to connect, and *anchor_a* and *anchor_b*
+      # are the points in local coordinates where the pivot is located.
       def initialize(a : Body, b : Body, anchor_a : Vect, anchor_b : Vect)
         @constraint = uninitialized LibCP::PivotJoint
         LibCP.pivot_joint_init(pointerof(@constraint), a, b, anchor_a, anchor_b)
@@ -240,9 +266,11 @@ module CP
         _cp_if_overridden :pre_solve { LibCP.constraint_set_pre_solve_func(self, @@pre_solve) }
         _cp_if_overridden :post_solve { LibCP.constraint_set_post_solve_func(self, @@post_solve) }
       end
-      def self.new(a : Body?, b : Body?, pivot : Vect) : self
-        anchor_a = (a ? a.world_to_local(pivot) : pivot)
-        anchor_b = (b ? b.world_to_local(pivot) : pivot)
+      # *a* and *b* are the two bodies to connect, and *pivot* is the point in
+      # world coordinates of the pivot.
+      def self.new(a : Body, b : Body, pivot : Vect) : self
+        anchor_a = a.world_to_local(pivot)
+        anchor_b = b.world_to_local(pivot)
         self.new(a, b, anchor_a, anchor_b)
       end
 
@@ -268,7 +296,13 @@ module CP
       end
     end
 
+    # Like pin joints, but have a minimum and maximum distance.
+    # A chain could be modeled using this joint. It keeps the anchor points
+    # from getting too far apart, but will allow them to get closer together.
     class SlideJoint < Constraint
+      # *a* and *b* are the two bodies to connect, *anchor_a* and *anchor_b* are
+      # the anchor points on those bodies, and *min* and *max* define the allowed
+      # distances of the anchor points.
       def initialize(a : Body, b : Body, anchor_a : Vect, anchor_b : Vect, min : Number, max : Number)
         @constraint = uninitialized LibCP::SlideJoint
         LibCP.slide_joint_init(pointerof(@constraint), a, b, anchor_a, anchor_b, min, max)
@@ -315,7 +349,10 @@ module CP
       end
     end
 
+    # Works like a socket wrench.
     class RatchetJoint < Constraint
+      # *ratchet* is the distance between "clicks", *phase* is the initial offset
+      # to use when deciding where the ratchet angles are.
       def initialize(a : Body, b : Body, phase : Number, ratchet : Number)
         @constraint = uninitialized LibCP::RatchetJoint
         LibCP.ratchet_joint_init(pointerof(@constraint), a, b, phase, ratchet)
@@ -354,7 +391,10 @@ module CP
       end
     end
 
+    # Constrains the relative rotations of two bodies.
     class RotaryLimitJoint < Constraint
+      # *min* and *max* are the angular limits in radians. It is implemented so
+      # that it's possible to for the range to be greater than a full revolution.
       def initialize(a : Body, b : Body, min : Number, max : Number)
         @constraint = uninitialized LibCP::RotaryLimitJoint
         LibCP.rotary_limit_joint_init(pointerof(@constraint), a, b, min, max)
@@ -391,6 +431,13 @@ module CP
         DampedSpring[constraint].spring_force(dist).to_f
       }
 
+      # Defined much like a slide joint.
+      #
+      # * *anchor_a*: Anchor point a, relative to body a
+      # * *anchor_b*: Anchor point b, relative to body b
+      # * *rest_length*: The distance the spring wants to be at
+      # * *stiffness*: The spring constant (Young's modulus)
+      # * *damping*: How soft to make the damping of the spring
       def initialize(a : Body, b : Body, anchor_a : Vect, anchor_b : Vect, rest_length : Number, stiffness : Number, damping : Number)
         @constraint = uninitialized LibCP::DampedSpring
         LibCP.damped_spring_init(pointerof(@constraint), a, b, anchor_a, anchor_b, rest_length, stiffness, damping)
@@ -421,7 +468,7 @@ module CP
         LibCP.damped_spring_set_anchor_b(self, anchor_b)
       end
 
-      # The rest length of the spring.
+      # The distance the spring wants to be at.
       def rest_length : Float64
         LibCP.damped_spring_get_rest_length(self)
       end
@@ -437,7 +484,7 @@ module CP
         LibCP.damped_spring_set_stiffness(self, stiffness)
       end
 
-      # The damping of the spring.
+      # How soft to make the damping of the spring.
       def damping : Float64
         LibCP.damped_spring_get_damping(self)
       end
@@ -451,6 +498,7 @@ module CP
       end
     end
 
+    # Like a damped spring, but works in an angular fashion
     class DampedRotarySpring < Constraint
       @@spring_torque : LibCP::DampedRotarySpringTorqueFunc =
       ->(constraint : LibCP::Constraint*, relative_angle : Float64) {
@@ -471,7 +519,7 @@ module CP
         pointerof(@constraint).as(LibCP::Constraint*)
       end
 
-      # The rest angle of the spring.
+      # The relative angle in radians that the bodies want to have
       def rest_angle : Float64
         LibCP.damped_rotary_spring_get_rest_angle(self)
       end
@@ -487,7 +535,7 @@ module CP
         LibCP.damped_rotary_spring_set_stiffness(self, stiffness)
       end
 
-      # The damping of the spring.
+      # How soft to make the damping of the spring.
       def damping : Float64
         LibCP.damped_rotary_spring_get_damping(self)
       end
@@ -501,6 +549,7 @@ module CP
       end
     end
 
+    # Keeps the relative angular velocity of a pair of bodies constant.
     class SimpleMotor < Constraint
       def initialize(a : Body, b : Body, rate : Number)
         @constraint = uninitialized LibCP::SimpleMotor
@@ -515,7 +564,10 @@ module CP
         pointerof(@constraint).as(LibCP::Constraint*)
       end
 
-      # The rate of the motor.
+      # The desired relative angular velocity of the motor.
+      #
+      # You will usually want to set a force (torque) maximum for motors as otherwise
+      # they will be able to apply a nearly infinite torque to keep the bodies moving.
       def rate : Float64
         LibCP.simple_motor_get_rate(self)
       end

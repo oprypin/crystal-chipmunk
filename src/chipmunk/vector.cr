@@ -43,7 +43,7 @@ module CP
       @y = y.to_f
     end
 
-    # Returns the angular direction v is pointing in (in radians).
+    # Returns the unit length vector for the given angle (in radians).
     def self.angle(a : Number) : self
       Vect.new(Math.cos(a), Math.sin(a))
     end
@@ -103,7 +103,7 @@ module CP
       v2 * (dot v2) / (v2.dot v2)
     end
 
-    # Returns the unit length vector for the given angle (in radians).
+    # Returns the angular direction the vector is pointing in (in radians).
     def to_angle() : Float64
       Math.atan2(@y, @x)
     end
@@ -115,7 +115,7 @@ module CP
       Vect.new(@x * v2.x - @y * v2.y, @x * v2.y + @y * v2.x)
     end
 
-    # Inverse of cpvrotate().
+    # Inverse of `rotate`.
     def unrotate(v2 : Vect) : Vect
       Vect.new(@x * v2.x + @y * v2.y, @y * v2.x - @x * v2.y)
     end
@@ -208,7 +208,7 @@ module CP
   end
 
   @[Extern]
-  # Column major affine transform
+  # Column major 2x3 affine transform.
   struct Transform
     # Identity transform matrix.
     IDENTITY = new
@@ -372,7 +372,7 @@ module CP
       BB.new(c.x - hw, c.y - hh, c.x + hw, c.y + hh)
     end
 
-    # Constructs a `BB` for a circle with the given position and radius.
+    # Constructs a `BB` fitting a circle with the position *p* and radius *r*.
     def self.new_for_circle(p : Vect, r : Number) : self
       BB.new_for_extents(p, r, r)
     end
@@ -397,7 +397,7 @@ module CP
       BB.new({@left, other.left}.min, {@bottom, other.bottom}.min, {@right, other.right}.max, {@top, other.top}.max)
     end
 
-    # Returns a bounding box that contains both this `BB` and the *point*.
+    # Returns the minimal bounding box that contains both this `BB` and the *point*.
     def expand(point : Vect) : BB
       BB.new({@left, point.x}.min, {@bottom, point.y}.min, {@right, point.x}.max, {@top, point.y}.max)
     end
@@ -412,7 +412,9 @@ module CP
       (@right - @left) * (@top - @bottom)
     end
 
-    # Returns the fraction along the segment query the `BB` is hit. Returns INFINITY if it doesn't hit.
+    # Returns the fraction along the segment query the `BB` is hit.
+    #
+    # Returns INFINITY if it doesn't hit.
     def segment_query(a : Vect, b : Vect) : Float64
       idx = 1.0 / (b.x - a.x)
       tx1 = @left == a.x ? Float64::MIN : (@left - a.x) * idx

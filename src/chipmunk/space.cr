@@ -21,6 +21,8 @@
 
 
 module CP
+  # Spaces are the basic unit of simulation. You add rigid bodies, shapes
+  # and joints to it and then step them all forward together through time.
   class Space
     alias Timestamp = UInt32
 
@@ -51,6 +53,19 @@ module CP
     end
 
     # Number of iterations to use in the impulse solver to solve contacts and other constraints.
+    #
+    # Chipmunk uses an iterative solver to figure out the forces between
+    # objects in the space. What this means is that it builds a big list of
+    # all of the collisions, joints, and other constraints between the
+    # bodies and makes several passes over the list considering each one
+    # individually. The number of passes it makes is the iteration count,
+    # and each iteration makes the solution more accurate. If you use too
+    # many iterations, the physics should look nice and solid, but may use
+    # up too much CPU time. If you use too few iterations, the simulation
+    # may seem mushy or bouncy when the objects should be solid. Setting
+    # the number of iterations lets you balance between CPU usage and the
+    # accuracy of the physics. Chipmunk's default of 10 iterations is
+    # sufficient for most simple games.
     def iterations : Int32
       LibCP.space_get_iterations(self)
     end
@@ -59,6 +74,8 @@ module CP
     end
 
     # Gravity to pass to rigid bodies when integrating velocity.
+    #
+    # Defaults to (0,0).
     def gravity : Vect
       LibCP.space_get_gravity(self)
     end
@@ -153,21 +170,27 @@ module CP
       LibCP.space_is_locked(self)
     end
 
-    # Add a collision handler for the specified pair of collision types.
+    # Whenever shapes with collision types *a* and *b* collide,
+    # this handler will be used to process the collision events.
     #
-    # If wildcard handlers are used with either of the collision types, it's the responibility of the custom handler to invoke the wildcard handlers.
+    # If wildcard handlers are used with either of the collision types,
+    # it's the responibility of the custom handler to invoke the wildcard handlers.
     def add_collision_handler(a : Int, b : Int, handler : CollisionHandler) : CollisionHandler
       @collision_handlers << handler
       handler.prime!(LibCP.space_add_collision_handler(self, a, b))
     end
 
-    # Add a wildcard collision handler for the specified type.
+    # Set a wildcard collision handler for the specified type.
+    #
+    # This handler will be used any time an object with this type collides
+    # with another object, regardless of its type.
     def add_collision_handler(type : Int, handler : CollisionHandler) : CollisionHandler
       @collision_handlers << handler
       handler.prime!(LibCP.space_add_wildcard_handler(self, type))
     end
 
-    # Add a collision handler that is called for all collisions that are not handled by a more specific collision handler.
+    # Set a collision handler that is called for all collisions that are not
+    # handled by a more specific collision handler.
     def add_collision_handler(handler : CollisionHandler) : CollisionHandler
       @collision_handlers << handler
       handler.prime!(LibCP.space_add_default_collision_handler(self))
@@ -232,7 +255,13 @@ module CP
       end
     end
 
-    # Query the space at a point and yield each shape found.
+    # Query the space at a point for shapes within the given distance range.
+    #
+    # The filter is applied to the query and follows the same rules as the
+    # collision detection. Sensor shapes are included. If a *max_distance* of
+    # 0 is used, the point must lie inside a shape. Negative *max_distance*
+    # is also allowed meaning that the point must be a under a certain
+    # depth within a shape to be considered a match.
     _cp_gather point_query : PointQueryInfo,
     def point_query(point : Vect, max_distance : Number = 0, filter : ShapeFilter = ShapeFilter::ALL, &block : PointQueryInfo ->)
       LibCP.space_point_query(self, point, max_distance, filter, ->(shape, point, distance, gradient, data) {
@@ -250,6 +279,9 @@ module CP
     end
 
     # Perform a directed line segment query (like a raycast) against the space and yield each shape intersected.
+    #
+    # The filter is applied to the query and follows the same rules as the
+    # collision detection. Sensor shapes are included.
     _cp_gather segment_query : SegmentQueryInfo,
     def segment_query(start : Vect, end end_ : Vect, radius : Number = 0, filter : ShapeFilter = ShapeFilter::ALL, &block : SegmentQueryInfo ->)
       LibCP.space_segment_query(self, start, end_, radius, filter, ->(shape, point, normal, alpha, data) {

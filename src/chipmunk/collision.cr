@@ -27,15 +27,19 @@ module CP
   # A struct that wraps up the important collision data for an arbiter.
   struct ContactPointSet
     @[Extern]
+    # Contains information about a contact point.
     struct ContactPoint
-      # The position of the contact on the surface of each shape.
-      getter point_a : Vect, point_b : Vect
+      # The position of the contact on the surface of the first shape.
+      getter point_a : Vect
+      # The position of the contact on the surface of the second shape.
+      getter point_b : Vect
       # Penetration distance of the two shapes. Overlapping means it will be negative.
       #
-      # This value is calculated as `(point2 - point1).dot(normal)` and is ignored by `contact_point_set=`.
+      # This value is calculated as `(point2 - point1).dot(normal)` and is ignored by `Arbiter#contact_point_set=`.
       getter distance : Float64
 
-      def initialize(@point_a : Vect, @point_b : Vect, @distance : Float64)
+      def initialize(@point_a : Vect, @point_b : Vect, distance : Number)
+        @distance = distance.to_f
       end
     end
 
@@ -48,10 +52,10 @@ module CP
     def initialize(points : Slice(ContactPoint), @normal : Vect)
       @count = points.size
       @points = uninitialized ContactPoint[2]
-      points.copy_to(@points, @count)
+      points.copy_to(@points.to_unsafe, @count)
     end
 
-    # The contact points.
+    # The contact points (at most 2).
     def points : Slice(ContactPoint)
       @points.to_unsafe.to_slice(@count)
     end
@@ -59,6 +63,17 @@ module CP
   # :nodoc:
   alias ContactPoint = ContactPointSet::ContactPoint
 
+  # The Arbiter object encapsulates a pair of colliding shapes and all of
+  # the data about their collision.
+  #
+  # They are created when a collision starts, and persist until those
+  # shapes are no longer colliding.
+  #
+  # **Warning:** Because arbiters are handled by the space you should
+  # never hold on to an arbiter as you don't know when it will be
+  # destroyed! Use them within the callback where they are given to you
+  # and then forget about them or copy out the information you need from
+  # them.
   struct Arbiter
     # :nodoc:
     def initialize(@ptr : LibCP::Arbiter*)
@@ -73,6 +88,10 @@ module CP
     end
 
     # The restitution (elasticity) that will be applied to the pair of colliding objects.
+    #
+    # Setting the value in a `pre_solve()` callback will override the value
+    # calculated by the space. The default calculation multiplies the
+    # elasticity of the two shapes together.
     def restitution : Float64
       LibCP.arbiter_get_restitution(self)
     end
@@ -81,6 +100,10 @@ module CP
     end
 
     # The friction coefficient that will be applied to the pair of colliding objects.
+    #
+    # Setting the value in a `pre_solve()` callback will override the value
+    # calculated by the space. The default calculation multiplies the
+    # friction of the two shapes together.
     def friction : Float64
       LibCP.arbiter_get_friction(self)
     end
@@ -90,7 +113,14 @@ module CP
 
     # The relative surface velocity of the two shapes in contact.
     #
-    # By default this is calculated to be the difference of the two surface velocities clamped to the tangent plane.
+    # Setting the value in a `pre_solve()` callback will override the value
+    # calculated by the space. the default calculation subtracts the
+    # surface velocity of the second shape from the first and then projects
+    # that onto the tangent of the collision. This is so that only
+    # friction is affected by default calculation. Using a custom
+    # calculation, you can make something that responds like a pinball
+    # bumper, or where the surface velocity is dependent on the location
+    # of the contact point.
     def surface_velocity : Vect
       LibCP.arbiter_get_surface_velocity(self)
     end
@@ -149,11 +179,17 @@ module CP
     end
 
     # Returns true if this is the first step a pair of objects started colliding.
+    #
+    # This can be useful for sound effects for instance. If it's the first
+    # frame for a certain collision, check the energy of the collision in a
+    # `post_step()` callback and use that to determine the volume of a sound
+    # effect to play.
     def first_contact? : Bool
       LibCP.arbiter_is_first_contact(self)
     end
 
-    # Returns true if the separate callback is due to a shape being removed from the space.
+    # Returns true during a `separate()` callback if the callback was
+    # invoked due to an object removal.
     def removal? : Bool
       LibCP.arbiter_is_removal(self)
     end
@@ -238,6 +274,16 @@ module CP
   # Defines callbacks to configure custom collision handling.
   #
   # Collision handlers have a pair of types; when a collision occurs between two shapes that have these types, the collision handler functions are triggered.
+  #
+  # Shapes tagged as sensors (`Shape#sensor? == true`) never generate
+  # collisions that get processed, so collisions between sensors shapes and
+  # other shapes will never call the `post_solve` callback. They still
+  # generate `begin`, and `separate` callbacks, and the `pre_solve` callback
+  # is also called every frame even though there is no collision response.
+  #
+  # `pre_solve` callbacks are called before the sleeping algorithm
+  # runs. If an object falls asleep, its `post_solve` callback won't be
+  # called until it's reawoken.
   class CollisionHandler
     alias CollisionType = LibC::SizeT
 
@@ -290,7 +336,8 @@ module CP
     end
     # This function is called each step when two shapes with types that match this collision handler are colliding.
     #
-    # It's called before the collision solver runs so that you can affect a collision's outcome.
+    # It's called before the collision solver runs so that you can affect a collision's outcome
+    # (by editing `Arbiter#friction`, `Arbiter#restitution`, `Arbiter#surface_velocity`).
     #
     # Returning false from a pre-step callback causes the collision to be ignored until the next step.
     def pre_solve(arbiter : Arbiter, space : Space) : Bool
@@ -298,10 +345,15 @@ module CP
     end
     # This function is called each step when two shapes with types that match this collision handler are colliding.
     #
-    # It's called after the collision solver runs so that you can read back information about the collision to trigger events in your game.
+    # It's called after the collision solver runs, so you can retrieve the collision impulse
+    # or kinetic energy if you want to use it to calculate sound volumes or damage amounts.
     def post_solve(arbiter : Arbiter, space : Space)
     end
     # This function is called when two shapes with types that match this collision handler stop colliding.
+    #
+    # To ensure that `begin`/`separate` are always called in balanced
+    # pairs, it will also be called when removing a shape while it's in
+    # contact with something or when deallocating the space.
     def separate(arbiter : Arbiter, space : Space)
     end
   end

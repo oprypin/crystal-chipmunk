@@ -8,7 +8,7 @@ Requires Chipmunk 7.
 
 This library uses and is based on [Chipmunk][].
 
-Tests are based on [pymunk][]'s unittests.
+Tests and documentation are based on [pymunk][].
 
 
 [crystal]: http://crystal-lang.org/

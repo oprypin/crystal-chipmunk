@@ -35,11 +35,21 @@ require "./shape"
 module CP
   class Shape::Circle < Shape
     # **Unsafe.** Set the radius of a circle shape.
+    #
+    # This change is only picked up as a change to the position
+    # of the shape's surface, but not its velocity. Changing it will
+    # not result in realistic physical behavior. Only use if you know
+    # what you are doing!
     def radius=(radius : Number)
       LibCP.circle_shape_set_radius(self, radius)
     end
 
     # **Unsafe.** Set the offset of a circle shape.
+    #
+    # This change is only picked up as a change to the position
+    # of the shape's surface, but not its velocity. Changing it will
+    # not result in realistic physical behavior. Only use if you know
+    # what you are doing!
     def offset=(offset : Vect)
       LibCP.circle_shape_set_offset(self, offset)
     end
@@ -47,23 +57,43 @@ module CP
 
   class Shape::Segment < Shape
     # **Unsafe.** Set the endpoints of a segment shape.
+    #
+    # This change is only picked up as a change to the position
+    # of the shape's surface, but not its velocity. Changing it will
+    # not result in realistic physical behavior. Only use if you know
+    # what you are doing!
     def set_endpoints(a : Vect, b : Vect)
       LibCP.segment_shape_set_endpoints(self, a, b)
     end
 
     # **Unsafe.** Set the radius of a segment shape.
+    #
+    # This change is only picked up as a change to the position
+    # of the shape's surface, but not its velocity. Changing it will
+    # not result in realistic physical behavior. Only use if you know
+    # what you are doing!
     def radius=(radius : Number)
       LibCP.segment_shape_set_radius(self, radius)
     end
   end
 
   class Shape::Poly < Shape
-    # **Unsafe.** Set the vertexes of a poly shape.
+    # **Unsafe.** Set the vertices of a poly shape.
+    #
+    # This change is only picked up as a change to the position
+    # of the shape's surface, but not its velocity. Changing it will
+    # not result in realistic physical behavior. Only use if you know
+    # what you are doing!
     def set_verts(verts : Array(Vect)|Slice(Vect), transform : Transform = Transform::IDENTITY)
       LibCP.poly_shape_set_verts(self, verts.size, verts, transform)
     end
 
     # **Unsafe.** Set the radius of a poly shape.
+    #
+    # This change is only picked up as a change to the position
+    # of the shape's surface, but not its velocity. Changing it will
+    # not result in realistic physical behavior. Only use if you know
+    # what you are doing!
     def radius=(radius : Number)
       LibCP.poly_shape_set_radius(self, radius)
     end
