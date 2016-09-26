@@ -46,14 +46,9 @@ class Sliced < Demo
     shape.friction = 1.0
     shape.filter = NOGRAB_FILTER
 
-    width = 200.0
-    height = 300.0
-    mass = width * height * DENSITY
-    moment = CP::Box.moment(mass, width, height)
-
-    body = space.add CP::Body.new(mass, moment)
-
-    shape = space.add CP::Box.new(body, width, height)
+    body = space.add CP::Body.new()
+    shape = space.add CP::Box.new(body, 200, 300)
+    shape.density = DENSITY
     shape.friction = 0.6
   end
 

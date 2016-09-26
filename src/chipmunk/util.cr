@@ -20,17 +20,28 @@
 
 
 # :nodoc:
-macro _cp_if_overridden(name, cls = nil, &block)
+macro _cp_if_defined(name, cls = nil, &block)
   {% cls = cls ? cls.resolve : @type %}
-  {% if cls.superclass != Reference %}
+  {% if cls != Reference %}
     {% if cls.methods.any? { |meth| meth.name == name.id } %}
       {{yield}}
+    {% else %}
+      _cp_if_defined({{name}}, {{cls.superclass}}) {{block}}
+    {% end %}
+  {% end %}
+end
+
+# :nodoc:
+macro _cp_if_overridden(name, cls = nil, &block)
+  {% cls = cls ? cls.resolve : @type %}
+  {% if cls != Reference %}
+    {% if cls.methods.any? { |meth| meth.name == name.id } %}
+      _cp_if_defined({{name}}, {{cls.superclass}}) {{block}}
     {% else %}
       _cp_if_overridden({{name}}, {{cls.superclass}}) {{block}}
     {% end %}
   {% end %}
 end
-
 
 # :nodoc:
 macro _cp_gather(name, f)

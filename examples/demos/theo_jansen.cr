@@ -48,20 +48,19 @@ class TheoJansen < Demo
     seg_radius = 3.0
 
     # make chassis
-    chassis_mass = 2.0
     a = CP.v(-offset, 0.0)
     b = CP.v(offset, 0.0)
-    chassis = space.add CP::Body.new(chassis_mass, CP::Segment.moment(chassis_mass, a, b, 0.0))
+    chassis = space.add CP::Body.new
 
     shape = space.add CP::Segment.new(chassis, a, b, seg_radius)
+    shape.mass = 2.0
     shape.filter = CP::ShapeFilter.new(group: 1)
 
     # make crank
-    crank_mass = 1.0
-    crank_radius = 13.0
-    crank = space.add CP::Body.new(crank_mass, CP::Circle.moment(crank_mass, crank_radius, 0.0, CP.vzero))
+    crank = space.add CP::Body.new
 
-    shape = space.add CP::Circle.new(crank, crank_radius, CP.vzero)
+    shape = space.add CP::Circle.new(crank, crank_radius = 13.0, CP.vzero)
+    shape.mass = 1.0
     shape.filter = CP::ShapeFilter.new(group: 1)
 
     space.add CP::PivotJoint.new(chassis, crank, CP.vzero, CP.vzero)

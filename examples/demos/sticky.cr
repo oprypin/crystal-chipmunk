@@ -49,13 +49,11 @@ class Sticky < Demo
     end
 
     200.times do
-      mass = 0.15
-      radius = 10.0
-
-      body = space.add CP::Body.new(mass, CP::Circle.moment(mass, 0.0, radius))
+      body = space.add CP::Body.new
       body.position = CP.v(random.rand(-150.0..150.0), random.rand(-150.0..150.0))
 
-      shape = space.add CP::Circle.new(body, radius + STICK_SENSOR_THICKNESS)
+      shape = space.add CP::Circle.new(body, radius: 10 + STICK_SENSOR_THICKNESS)
+      shape.mass = 0.15
       shape.friction = 0.9
       shape.collision_type = COLLISION_TYPE_STICKY
     end
