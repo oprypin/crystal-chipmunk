@@ -891,45 +891,9 @@ lib LibCP
     arr : Void**
   end
 
-  fun array_new = cpArrayNew(size : Int32) : Array*
-
-  fun array_free = cpArrayFree(arr : Array*)
-
-  fun array_push = cpArrayPush(arr : Array*, object : Void*)
-
-  fun array_pop = cpArrayPop(arr : Array*) : Void*
-
-  fun array_delete_obj = cpArrayDeleteObj(arr : Array*, obj : Void*)
-
-  fun array_contains = cpArrayContains(arr : Array*, ptr : Void*) : Bool
-
-  fun array_free_each = cpArrayFreeEach(arr : Array*, free_func : Void* -> Void)
-
   alias HashSetEqlFunc = (Void*, Void*) -> Bool
 
   alias HashSetTransFunc = (Void*, Void*) -> Void*
-
-  fun hash_set_new = cpHashSetNew(size : Int32, eql_func : HashSetEqlFunc) : HashSet*
-
-  fun hash_set_set_default_value = cpHashSetSetDefaultValue(set : HashSet*, default_value : Void*)
-
-  fun hash_set_free = cpHashSetFree(set : HashSet*)
-
-  fun hash_set_count = cpHashSetCount(set : HashSet*) : Int32
-
-  fun hash_set_insert = cpHashSetInsert(set : HashSet*, hash : HashValue, ptr : Void*, trans : HashSetTransFunc, data : Void*) : Void*
-
-  fun hash_set_remove = cpHashSetRemove(set : HashSet*, hash : HashValue, ptr : Void*) : Void*
-
-  fun hash_set_find = cpHashSetFind(set : HashSet*, hash : HashValue, ptr : Void*) : Void*
-
-  alias HashSetIteratorFunc = (Void*, Void*) ->
-
-  fun hash_set_each = cpHashSetEach(set : HashSet*, func : HashSetIteratorFunc, data : Void*)
-
-  alias HashSetFilterFunc = (Void*, Void*) -> Bool
-
-  fun hash_set_filter = cpHashSetFilter(set : HashSet*, func : HashSetFilterFunc, data : Void*)
 
   struct BodySleeping
     root : Body*
@@ -961,16 +925,6 @@ lib LibCP
     constraint_list : Constraint*
     sleeping : BodySleeping
   end
-
-  fun body_add_shape = cpBodyAddShape(body : Body*, shape : Shape*)
-
-  fun body_remove_shape = cpBodyRemoveShape(body : Body*, shape : Shape*)
-
-  fun body_accumulate_mass_from_shapes = cpBodyAccumulateMassFromShapes(body : Body*)
-
-  fun body_remove_constraint = cpBodyRemoveConstraint(body : Body*, constraint : Constraint*)
-
-  fun spatial_index_init = cpSpatialIndexInit(index : SpatialIndex*, klass : SpatialIndexClass*, bbfunc : SpatialIndexBBFunc, static_index : SpatialIndex*) : SpatialIndex*
 
   enum ArbiterState
     FIRST_COLLISION
@@ -1028,18 +982,6 @@ lib LibCP
     stamp : CP::Space::Timestamp
     state : ArbiterState
   end
-
-  fun arbiter_init = cpArbiterInit(arb : Arbiter*, a : Shape*, b : Shape*) : Arbiter*
-
-  fun arbiter_unthread = cpArbiterUnthread(arb : Arbiter*)
-
-  fun arbiter_update = cpArbiterUpdate(arb : Arbiter*, info : CollisionInfo*, space : Space*)
-
-  fun arbiter_pre_step = cpArbiterPreStep(arb : Arbiter*, dt : Float64, bias : Float64, slop : Float64)
-
-  fun arbiter_apply_cached_impulse = cpArbiterApplyCachedImpulse(arb : Arbiter*, dt_coef : Float64)
-
-  fun arbiter_apply_impulse = cpArbiterApplyImpulse(arb : Arbiter*)
 
   struct ShapeMassInfo
     m : Float64
@@ -1121,12 +1063,6 @@ lib LibCP
     planes : SplittingPlane*
     _planes : SplittingPlane[12]
   end
-
-  fun shape_init = cpShapeInit(shape : Shape*, klass : ShapeClass*, body : Body*, mass_info : ShapeMassInfo) : Shape*
-
-  fun collide = cpCollide(a : Shape*, b : Shape*, id : CollisionID, contacts : Contact*) : CollisionInfo
-
-  fun loop_indexes = cpLoopIndexes(verts : CP::Vect*, count : Int32, start : Int32*, end_ : Int32*)
 
   alias ConstraintPreStepImpl = (Constraint*, Float64) ->
 
@@ -1277,10 +1213,6 @@ lib LibCP
     j_acc : Float64
   end
 
-  fun constraint_init = cpConstraintInit(constraint : Constraint*, klass : ConstraintClass*, a : Body*, b : Body*)
-
-  alias SpaceArbiterApplyImpulseFunc = Arbiter* ->
-
   struct Space
     iterations : Int32
     gravity : CP::Vect
@@ -1316,39 +1248,11 @@ lib LibCP
     _static_body : Body
   end
 
-  fun space_set_static_body = cpSpaceSetStaticBody(space : Space*, body : Body*)
-
-  $cp_collision_handler_do_nothing : CollisionHandler
-
-  fun space_process_components = cpSpaceProcessComponents(space : Space*, dt : Float64)
-
-  fun space_push_fresh_contact_buffer = cpSpacePushFreshContactBuffer(space : Space*)
-
-  fun contact_buffer_get_array = cpContactBufferGetArray(space : Space*) : Contact*
-
-  fun space_push_contacts = cpSpacePushContacts(space : Space*, count : Int32)
-
   struct PostStepCallback
     func : PostStepFunc
     key : Void*
     data : Void*
   end
-
-  fun space_get_post_step_callback = cpSpaceGetPostStepCallback(space : Space*, key : Void*) : PostStepCallback*
-
-  fun space_arbiter_set_filter = cpSpaceArbiterSetFilter(arb : Arbiter*, space : Space*) : Bool
-
-  fun space_filter_arbiters = cpSpaceFilterArbiters(space : Space*, body : Body*, filter : Shape*)
-
-  fun space_activate_body = cpSpaceActivateBody(space : Space*, body : Body*)
-
-  fun space_lock = cpSpaceLock(space : Space*)
-
-  fun space_unlock = cpSpaceUnlock(space : Space*, run_post_step : Bool)
-
-  fun shape_update_func = cpShapeUpdateFunc(shape : Shape*, unused : Void*)
-
-  fun space_collide_shapes = cpSpaceCollideShapes(a : Shape*, b : Shape*, id : CollisionID, space : Space*) : CollisionID
 
   fun circle_shape_set_radius = cpCircleShapeSetRadius(shape : Shape*, radius : Float64)
 
@@ -1359,8 +1263,6 @@ lib LibCP
   fun segment_shape_set_radius = cpSegmentShapeSetRadius(shape : Shape*, radius : Float64)
 
   fun poly_shape_set_verts = cpPolyShapeSetVerts(shape : Shape*, count : Int32, verts : CP::Vect*, transform : CP::Transform)
-
-  fun poly_shape_set_verts_raw = cpPolyShapeSetVertsRaw(shape : Shape*, count : Int32, verts : CP::Vect*)
 
   fun poly_shape_set_radius = cpPolyShapeSetRadius(shape : Shape*, radius : Float64)
 
