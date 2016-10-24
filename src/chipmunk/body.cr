@@ -122,9 +122,10 @@ module CP
       self[this] if this
     end
 
-    def finalize
-      LibCP.body_destroy(self)
-    end
+    # Avoid a finalization cycle; cpBodyDestroy is empty anyway
+    #def finalize
+      #LibCP.body_destroy(self)
+    #end
 
     # Wake up a sleeping or idle body.
     def activate()

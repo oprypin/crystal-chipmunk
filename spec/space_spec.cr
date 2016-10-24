@@ -70,12 +70,12 @@ describe Space do
     assert s.shapes.empty?
 
     b = s.add Body.new(1, 2)
-    assert s.bodies == [b]
+    assert s.bodies.to_a == [b]
     assert s.shapes.empty?
 
     c1 = s.add Circle.new(b, 10)
-    assert s.bodies == [b]
-    assert s.shapes == [c1]
+    assert s.bodies.to_a == [b]
+    assert s.shapes.to_a == [c1]
 
     c2 = s.add Circle.new(b, 15)
     assert s.shapes.size == 2
@@ -83,15 +83,15 @@ describe Space do
     assert s.shapes.includes? c2
 
     s.remove c1
-    assert s.shapes == [c2]
+    assert s.shapes.to_a == [c2]
 
     s.remove c2, b
     assert s.bodies.empty?
     assert s.shapes.empty?
 
     s.add c2, b
-    assert s.bodies == [b]
-    assert s.shapes == [c2]
+    assert s.bodies.to_a == [b]
+    assert s.shapes.to_a == [c2]
   end
 
   test "add/remove in step" do

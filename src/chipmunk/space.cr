@@ -28,6 +28,9 @@ module CP
 
     def initialize()
       @space = uninitialized LibCP::Space
+      @bodies = Set(Body).new
+      @constraints = Set(Constraint).new
+      @shapes = Set(Shape).new
       @in_step = false
       @todo = {} of (Body | Shape | Constraint) => Bool
       @collision_handlers = Set(CollisionHandler).new
@@ -48,9 +51,9 @@ module CP
       self[this] if this
     end
 
-    def finalize
-      LibCP.space_destroy(self)
-    end
+#     def finalize
+#       LibCP.space_destroy(self)
+#     end
 
     # Number of iterations to use in the impulse solver to solve contacts and other constraints.
     #
@@ -199,6 +202,11 @@ module CP
     {% for type in %w[Body Shape Constraint] %}
       {% name = type.downcase.id %}
       {% type = type.id %}
+      {% if type == "Body" %}
+        {% names = "bodies".id %}
+      {% else %}
+        {% names = name + "s" %}
+      {% end %}
 
       # Add a {{name}} to the simulation.{% if type == "Shape" %}
       #
@@ -212,6 +220,7 @@ module CP
           @todo[{{name}}] = true
         else
           LibCP.space_add_{{name}}(self, {{name}})
+          @{{names}} << {{name}}
         end
         {{name}}
       end
@@ -224,21 +233,25 @@ module CP
           @todo[{{name}}] = false
         else
           LibCP.space_remove_{{name}}(self, {{name}})
+          @{{names}}.delete {{name}}
         end
+        nil
       end
 
       # Test if a {{name}} has been added to the space.
       def contains?({{name}} : {{type}}) : Bool
-        LibCP.space_contains_{{name}}(self, {{name}})
+        @{{names}}.includes? {{name}}
       end
 
       # Yield each {{name}} in the space.
-      _cp_gather {% if type == "Body" %}bodies{% else %}{{name + "s"}}{% end %} : {{type}},
       def each_{{name}}(&block : {{type}} ->)
-        LibCP.space_each_{{name}}(self, ->(item, data) {
-          data.as(typeof(block)*).value.call({{type}}[item])
-        }, pointerof(block))
+        @{{names}}.each do |x|
+          yield x
+        end
       end
+
+      # Get all the {{names}} that are added to the space.
+      getter {{names}} : Set({{type}})
     {% end %}
 
     # Add multiple items

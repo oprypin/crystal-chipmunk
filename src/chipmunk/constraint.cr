@@ -50,9 +50,10 @@ module CP
       self[this] if this
     end
 
-    def finalize
-      LibCP.constraint_destroy(self)
-    end
+    # Avoid a finalization cycle; cpConstraintDestroy is empty anyway
+    #def finalize
+      #LibCP.constraint_destroy(self)
+    #end
 
     # Get the `Space` this constraint is added to.
     def space : Space?

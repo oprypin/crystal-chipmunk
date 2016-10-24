@@ -34,9 +34,10 @@ module CP
       self[this] if this
     end
 
-    def finalize
-      LibCP.shape_destroy(self)
-    end
+    # Avoid a finalization cycle; cpShapeDestroy is empty for most subclasses
+    #def finalize
+      #LibCP.shape_destroy(self)
+    #end
 
     # Update, cache and return the bounding box of a shape based on the body it's attached to.
     def cache_bb() : BB
@@ -354,6 +355,11 @@ module CP
       def to_unsafe : LibCP::Shape*
         pointerof(@shape).as(LibCP::Shape*)
       end
+
+      # Better leak a small array than cause a finalization cycle...
+      #def finalize
+        #LibCP.shape_destroy(self)
+      #end
 
       # Get the number of verts in a polygon shape.
       def size : Int32
