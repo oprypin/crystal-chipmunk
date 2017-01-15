@@ -26,21 +26,21 @@ module CP
   class Space
     alias Timestamp = UInt32
 
-    def initialize()
-      @space = uninitialized LibCP::Space
+    def initialize(*, threaded : Bool = true)
+      @threaded = threaded
       @bodies = Set(Body).new
       @constraints = Set(Constraint).new
       @shapes = Set(Shape).new
       @in_step = false
       @todo = {} of (Body | Shape | Constraint) => Bool
       @collision_handlers = Set(CollisionHandler).new
-      LibCP.space_init(self)
+      @space = @threaded ? LibCP.hasty_space_new : LibCP.space_new
       LibCP.space_set_user_data(self, self.as(Void*))
     end
 
     # :nodoc:
     def to_unsafe : LibCP::Space*
-      pointerof(@space)
+      @space
     end
     # :nodoc:
     def self.[](this : LibCP::Space*) : self
@@ -352,7 +352,7 @@ module CP
     # Step the space forward in time by *dt* seconds.
     def step(dt : Number)
       @in_step = true
-      LibCP.space_step(self, dt)
+      @threaded ? LibCP.hasty_space_step(self, dt) : LibCP.space_step(self, dt)
       @in_step = false
 
       @todo.each do |item, add|
@@ -363,6 +363,18 @@ module CP
         end
       end
       @todo.clear
+    end
+
+    # Set number of threads for multithreaded physics solver
+    def threads=(nthreads : Int)
+      return unless @threaded
+      LibCP.hasty_space_set_threads(self, nthreads)
+    end
+
+    # Returns number of threads for multithreaded physics solver or 0 if the space isn't hasty
+    def threads : Int
+      return 0 unless @threaded
+      LibCP.hasty_space_get_threads(self)
     end
   end
 end
