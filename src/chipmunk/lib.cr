@@ -1272,4 +1272,15 @@ lib LibCP
     filter : CP::ShapeFilter
     func : SpacePointQueryFunc
   end
+
+  fun hasty_space_new = cpHastySpaceNew : Space*
+
+  fun hasty_space_free = cpHastySpaceFree(space : Space*)
+
+  fun hasty_space_set_threads = cpHastySpaceSetThreads(space : Space*, threads : UInt32)
+
+  fun hasty_space_get_threads = cpHastySpaceGetThreads(space : Space*) : UInt32
+
+  @[Raises]
+  fun hasty_space_step = cpHastySpaceStep(space : Space*, dt : Float64)
 end

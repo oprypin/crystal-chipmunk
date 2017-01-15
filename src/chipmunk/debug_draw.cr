@@ -166,7 +166,7 @@ module CP
         end
 
         if @flags.draw_collision_points?
-          arbiters = space.@space.arbiters
+          arbiters = space.@space.value.arbiters
 
           arbiters.value.num.times do |i|
             arb = arbiters.value.arr[i].as(LibCP::Arbiter*)
