@@ -35,14 +35,14 @@ class Joints < Demo
 
     static_body = space.static_body
 
-    -240.step 240, by: 120 do |y|
+    -240.step to: 240, by: 120 do |y|
       shape = space.add CP::Segment.new(static_body, CP.v(-320, y), CP.v(320, y))
       shape.elasticity = 1.0
       shape.friction = 1.0
       shape.filter = NOGRAB_FILTER
     end
 
-    -320.step 320, by: 160 do |x|
+    -320.step to: 320, by: 160 do |x|
       shape = space.add CP::Segment.new(static_body, CP.v(x, -240), CP.v(x, 240))
       shape.elasticity = 1.0
       shape.friction = 1.0
