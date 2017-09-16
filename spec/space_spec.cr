@@ -578,16 +578,16 @@ describe Space::DebugDraw do
     draw.draw(s)
 
     assert draw.calls == [%w{
-      draw_circle(pos : CP::Vect(@x=0.0, @y=0.0), angle : 0.0, radius : 5.0,
-                  outline_color : CP::Space::DebugDraw::Color(@r=0.784314, @g=0.823529, @b=0.901961, @a=1),
-                  fill_color : CP::Space::DebugDraw::Color(@r=0, @g=0.75, @b=0.164326, @a=1))
+      draw_circle(pos: CP::Vect(@x=0.0, @y=0.0), angle: 0.0, radius: 5.0,
+                  outline_color: CP::Space::DebugDraw::Color(@r=0.78431374_f32, @g=0.8235294_f32, @b=0.9019608_f32, @a=1.0_f32),
+                  fill_color: CP::Space::DebugDraw::Color(@r=0.0_f32, @g=0.75_f32, @b=0.16432585_f32, @a=1.0_f32))
     }].map &.join(" ")
   end
 end
 
 private macro def_draw(call)
   def draw_{{call}}
-    {% args = call.args.map { |arg| "#{arg} : \#{ #{arg} }".id } %}
+    {% args = call.args.map { |arg| "#{arg}: \#{ #{arg} }".id } %}
     @calls << "draw_{{call.name}}({{*args}})"
   end
 end

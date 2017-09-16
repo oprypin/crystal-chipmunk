@@ -30,6 +30,7 @@
 # to be pushed apart using Chipmunk's overlap solver, but not using real
 # persistent velocities. Probably not what you meant, but perhaps close enough.
 
+require "./lib"
 require "./shape"
 
 module CP

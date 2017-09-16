@@ -22,6 +22,7 @@ ball_shape.friction = 0.7
 
 time_step = 1.0/60.0
 time = 0.0
+
 while time < 2
   pos = ball_body.position
   vel = ball_body.velocity

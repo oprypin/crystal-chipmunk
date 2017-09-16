@@ -9,7 +9,9 @@ description: |
 
 development_dependencies:
   spec_assert:
-    github: blaxpirit/spec-assert
+    github: oprypin/spec-assert
     branch: master
+  crsfml:
+    github: oprypin/crsfml
 
 license: MIT
