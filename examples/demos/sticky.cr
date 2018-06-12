@@ -68,7 +68,7 @@ class Sticky < Demo
       # keeps them from separating and destroying the joint.
 
       # Track the deepest collision point and use that to determine if a rigid collision should occur.
-      deepest = Float64::MAX
+      deepest = Float64::INFINITY
 
       # Grab the contact set and iterate over them.
       contacts = arb.contact_point_set

@@ -105,7 +105,7 @@ class Demo
 
             if (info = @space.point_query_nearest(@mouse, radius, GRAB_FILTER))
               shape = info.shape
-              if (body = shape.body) && body.mass < Float64::MAX
+              if (body = shape.body) && body.mass < Float64::INFINITY
                 # Use the closest point on the surface if the click is outside of the shape.
                 nearest = (info.distance > 0.0 ? info.point : @mouse)
 

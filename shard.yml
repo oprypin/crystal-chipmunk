@@ -15,3 +15,8 @@ development_dependencies:
     github: oprypin/crsfml
 
 license: MIT
+
+crystal: 0.25.0
+
+libraries:
+  chipmunk: 7.0.2

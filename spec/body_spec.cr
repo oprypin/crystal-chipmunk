@@ -119,7 +119,7 @@ describe Body do
 
     assert !b.sleeping?
 
-    expect_raises { b.sleep }
+    expect_raises(Exception) { b.sleep }
     s.add b
     b.sleep()
 
@@ -141,7 +141,7 @@ describe Body do
     s.add b2
     b2.sleep()
 
-    expect_raises { b1.sleep_with_group(b2) }
+    expect_raises(Exception) { b1.sleep_with_group(b2) }
 
     s.add b1
     b1.sleep_with_group(b2)

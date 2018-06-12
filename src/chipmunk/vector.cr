@@ -417,13 +417,13 @@ module CP
     # Returns INFINITY if it doesn't hit.
     def segment_query(a : Vect, b : Vect) : Float64
       idx = 1.0 / (b.x - a.x)
-      tx1 = @left == a.x ? Float64::MIN : (@left - a.x) * idx
-      tx2 = @right == a.x ? Float64::MAX : (@right - a.x) * idx
+      tx1 = @left == a.x ? -Float64::INFINITY : (@left - a.x) * idx
+      tx2 = @right == a.x ? Float64::INFINITY : (@right - a.x) * idx
       txmin = {tx1, tx2}.min
       txmax = {tx1, tx2}.max
       idy = 1.0 / (b.y - a.y)
-      ty1 = @bottom == a.y ? Float64::MIN : (@bottom - a.y) * idy
-      ty2 = @top == a.y ? Float64::MAX : (@top - a.y) * idy
+      ty1 = @bottom == a.y ? -Float64::INFINITY : (@bottom - a.y) * idy
+      ty2 = @top == a.y ? Float64::INFINITY : (@top - a.y) * idy
       tymin = {ty1, ty2}.min
       tymax = {ty1, ty2}.max
       if tymin <= txmax && txmin <= tymax
@@ -438,7 +438,7 @@ module CP
 
     # Return true if the bounding box intersects the line segment with ends *a* and *b*.
     def intersects_segment?(a : Vect, b : Vect) : Bool
-      segment_query(a, b) != Float64::MAX
+      segment_query(a, b) != Float64::INFINITY
     end
 
     # Clamp a vector to a bounding box

@@ -53,7 +53,7 @@ class LogoSmash < Demo
       end
     end
 
-    body = space.add CP::Body.new(1e9, Float64::MAX)
+    body = space.add CP::Body.new(1e9, Float64::INFINITY)
     body.position = CP.v(-1000, -10)
     body.velocity = CP.v(400, 0)
 
@@ -64,7 +64,7 @@ class LogoSmash < Demo
   end
 
   def add_ball(x, y)
-    body = @space.add CP::Body.new(1.0, Float64::MAX)
+    body = @space.add CP::Body.new(1.0, Float64::INFINITY)
     body.position = CP.v(x, y)
 
     shape = @space.add CP::Circle.new(body, 0.95)
