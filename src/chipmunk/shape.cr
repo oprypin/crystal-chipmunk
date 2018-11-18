@@ -367,6 +367,10 @@ module CP
       end
 
       # Get the *i*-th vertex of a polygon shape.
+      def unsafe_fetch(index : Int32) : Vect
+        LibCP.poly_shape_get_vert(self, index)
+      end
+      # :nodoc:
       def unsafe_at(index : Int32) : Vect
         LibCP.poly_shape_get_vert(self, index)
       end
