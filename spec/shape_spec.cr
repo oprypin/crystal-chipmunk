@@ -7,8 +7,7 @@ describe Shape do
     c.cache_bb()
     info = c.point_query(v(0, 0))
     assert info.shape == c
-    assert info.point.x.nan?
-    assert info.point.y.nan?
+    assert info.point == v(0, 0)
     assert info.distance == -5
     assert info.gradient == v(0, 1)
 

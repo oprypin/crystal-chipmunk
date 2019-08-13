@@ -577,11 +577,11 @@ describe Space::DebugDraw do
 
     draw.draw(s)
 
-    assert draw.calls == [%w{
-      draw_circle(pos: CP::Vect(@x=0.0, @y=0.0), angle: 0.0, radius: 5.0,
-                  outline_color: CP::Space::DebugDraw::Color(@r=0.78431374_f32, @g=0.8235294_f32, @b=0.9019608_f32, @a=1.0_f32),
-                  fill_color: CP::Space::DebugDraw::Color(@r=0.0_f32, @g=0.75_f32, @b=0.16432585_f32, @a=1.0_f32))
-    }].map &.join(" ")
+    assert draw.calls == [%{
+      draw_circle(pos: #{v(0.0, 0.0)}, angle: #{0.0}, radius: #{5.0},
+                  outline_color: #{CP::Space::DebugDraw::Color.new(0.78431374_f32, 0.8235294_f32, 0.9019608_f32, 1.0_f32)},
+                  fill_color: #{CP::Space::DebugDraw::Color.new(0.0_f32, 0.75_f32, 0.16432585_f32, 1.0_f32)})
+    }].map &.split().join(" ")
   end
 end
 
