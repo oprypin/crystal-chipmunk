@@ -74,7 +74,7 @@ while window.open?
     window.clear
 
     rect = SF::RectangleShape.new(window.size)
-    text = SF::Text.new("", FONT, window.size.x / 12)
+    text = SF::Text.new("", FONT, window.size.x // 12)
     text.outline_thickness = 3
 
     i = 0

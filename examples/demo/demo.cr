@@ -28,7 +28,7 @@ class Demo
 
   FONT = SF::Font.from_file("resources/font/Cantarell-Regular.otf")
 
-  GRABBABLE_MASK = CP::ShapeFilter::Bitmask.new(1 << 31)
+  GRABBABLE_MASK = CP::ShapeFilter::Bitmask.new(1u32 << 31)
   GRAB_FILTER = CP::ShapeFilter.new(CP::ShapeFilter::NO_GROUP, GRABBABLE_MASK, GRABBABLE_MASK)
   NOGRAB_FILTER = CP::ShapeFilter.new(CP::ShapeFilter::NO_GROUP, ~GRABBABLE_MASK, ~GRABBABLE_MASK)
 

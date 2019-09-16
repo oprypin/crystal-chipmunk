@@ -220,14 +220,14 @@ module CP
       end
 
       def self.color_for_hash(hash : Int, intensity : Number) : Color
-        val = hash.to_u32
+        val = hash.to_u32!
 
         # scramble the bits up using Robert Jenkins' 32 bit integer hash function
-        val = (val + 0x7ed55d16_u32) + (val << 12)
+        val = (val &+ 0x7ed55d16_u32) &+ (val << 12)
         val = (val ^ 0xc761c23c_u32) ^ (val >> 19)
-        val = (val + 0x165667b1_u32) + (val << 5)
-        val = (val + 0xd3a2646c_u32) ^ (val << 9)
-        val = (val + 0xfd7046c5_u32) + (val << 3)
+        val = (val &+ 0x165667b1_u32) &+ (val << 5)
+        val = (val &+ 0xd3a2646c_u32) ^ (val << 9)
+        val = (val &+ 0xfd7046c5_u32) &+ (val << 3)
         val = (val ^ 0xb55a4f09_u32) ^ (val >> 16)
 
         r = (val >> 0) & 0xFF
