@@ -23,7 +23,7 @@ module CP
   # Defines the shape of a rigid body.
   abstract class Shape
     # :nodoc:
-    abstract def to_unsafe : LibCP::Shape
+    abstract def to_unsafe : LibCP::Shape*
 
     # :nodoc:
     def self.[](this : LibCP::Shape*) : self

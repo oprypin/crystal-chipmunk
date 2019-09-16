@@ -39,7 +39,7 @@ module CP
     }
 
     # :nodoc:
-    abstract def to_unsafe : LibCP::Constraint
+    abstract def to_unsafe : LibCP::Constraint*
 
     # :nodoc:
     def self.[](this : LibCP::Constraint*) : self
