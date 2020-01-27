@@ -157,6 +157,24 @@ describe Body do
     assert b.kinetic_energy == 100
   end
 
+  test "mass and moment from shape" do
+    s = Space.new()
+
+    b = Body.new()
+    b.mass = 2
+    c = Circle.new(b, 10, v(2, 3))
+    c.mass = 3
+
+    assert b.mass == 0
+    s.add b, c
+    assert b.mass == 3
+    c.mass = 4
+    assert b.mass == 4
+    assert b.center_of_gravity.x == 2
+    assert b.center_of_gravity.y == 3
+    assert b.moment == 200
+  end
+
   test "update_position" do
     s = Space.new()
     b = s.add PositionBody.new(1, 1)

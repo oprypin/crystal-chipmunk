@@ -41,6 +41,44 @@ describe Shape do
     assert info.alpha == 0.45
   end
 
+  test "mass" do
+    c = Circle.new(nil, 1)
+    assert c.mass == 0
+    c.mass = 2
+    assert c.mass == 2
+  end
+
+  test "density" do
+    c = Circle.new(nil, 1)
+    assert c.density == 0
+    c.density = 2
+    assert c.density == 2
+  end
+
+  test "moment" do
+    c = Circle.new(nil, 5)
+    assert c.moment == 0
+    c.density = 2
+    assert c.moment.close? 1963.4954084936207
+    c.density = 0
+    c.mass = 2
+    assert c.moment.close? 25
+  end
+
+  test "area" do
+    c = Circle.new(nil, 5)
+    assert c.area.close? 78.53981633974483
+  end
+
+  test "center_of_gravity" do
+    c = Circle.new(nil, 5)
+    assert c.center_of_gravity.x == 0
+    assert c.center_of_gravity.y == 0
+    c = Circle.new(nil, 5, v(10, 5))
+    assert c.center_of_gravity.x == 10
+    assert c.center_of_gravity.y == 5
+  end
+
   test "no body" do
     c = Circle.new(nil, 1)
     assert c.body == nil

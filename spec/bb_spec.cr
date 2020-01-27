@@ -23,6 +23,15 @@ describe BB do
     assert bb_circle.top == 6
   end
 
+  test "merge" do
+    bb1 = BB.new(0, 0, 10, 10)
+    bb2 = BB.new(2, 0, 10, 10)
+    bb3 = BB.new(10, 10, 15, 15)
+
+    assert bb1.merge(bb2) == BB.new(0, 0, 10, 10)
+    assert bb2.merge(bb3).merge(bb1) == BB.new(0, 0, 15, 15)
+  end
+
   test "methods" do
     bb1 = BB.new(0, 0, 10, 10)
     bb2 = BB.new(10, 10, 20, 20)
@@ -42,8 +51,6 @@ describe BB do
 
     assert bb1.contains?(v1)
     assert !bb1.contains?(v2)
-
-    assert bb1.merge(bb2) == BB.new(0, 0, 20, 20)
 
     assert bb1.expand(v1) == bb1
     assert bb1.expand(-v2) == BB.new(-100, -3, 10, 10)

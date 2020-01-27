@@ -218,6 +218,30 @@ test "Arbiter / first_contact?" do
   assert !ch.first_contact?
 end
 
+class NormalCollisionHandler < CollisionHandler
+  def pre_solve(arb, space)
+    assert arb.normal.x.close? 0.44721359
+    assert arb.normal.y.close? 0.89442719
+    true
+  end
+end
+
+test "Arbiter / normal" do
+  s = Space.new()
+  s.gravity = v(0, -100)
+
+  b1 = Body.new(1, 30)
+  b1.position = v(5, 10)
+  c1 = Circle.new(b1, 10)
+  c2 = Circle.new(s.static_body, 10)
+
+  s.add b1, c1, c2
+
+  s.add_collision_handler(ch = NormalCollisionHandler.new)
+
+  s.step(0.1)
+end
+
 class RemovalCollisionHandler < CollisionHandler
   property? removal : Bool?
 
@@ -245,7 +269,7 @@ test "Arbiter / removal?" do
 end
 
 class ShapesCollisionHandler < CollisionHandler
-  property shapes : {Shape, Shape}?
+  getter shapes : {Shape, Shape}?
 
   def pre_solve(arb, space)
     @shapes = arb.shapes

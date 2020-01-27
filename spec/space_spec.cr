@@ -193,6 +193,15 @@ describe Space do
     assert hits[1].gradient == v(1, 0)
   end
 
+  test "point_query with sensor" do
+    s = Space.new()
+    c = Circle.new(s.static_body, 10)
+    c.sensor = true
+    s.add c
+    hits = s.point_query(v(0, 0), 100, ShapeFilter.new())
+    assert hits.size == 1
+  end
+
   test "point_query_nearest" do
     s = Space.new()
     b1 = Body.new(1, 1)
@@ -218,6 +227,15 @@ describe Space do
     assert hit.gradient == v(1, 0)
   end
 
+  test "point_query_nearest with sensor" do
+    s = Space.new()
+    c = Circle.new(s.static_body, 10)
+    c.sensor = true
+    s.add c
+    hit = s.point_query_nearest(v(0, 0), 100, ShapeFilter.new())
+    assert hit == nil
+  end
+
   test "bb_query" do
     s = Space.new()
 
@@ -236,6 +254,15 @@ describe Space do
     assert !(hits.includes? s1)
   end
 
+  test "bb_query with sensor" do
+    s = Space.new()
+    c = Circle.new(s.static_body, 10)
+    c.sensor = true
+    s.add c
+    hits = s.bb_query(BB.new(0, 0, 10, 10), ShapeFilter.new())
+    assert hits.size == 1
+  end
+
   test "shape_query" do
     space = TestSpace.new()
 
@@ -247,7 +274,15 @@ describe Space do
 
     assert hits.size == 1
     assert hits[0] == space.s2
+  end
 
+  test "shape_query with sensor" do
+    s = Space.new()
+    c = Circle.new(s.static_body, 10)
+    c.sensor = true
+    s.add c
+    hits = s.shape_query(Circle.new(nil, 200))
+    assert hits.size == 1
   end
 
   test "static point queries" do
@@ -363,6 +398,15 @@ describe Space do
     assert hits.empty?
   end
 
+  test "segment_query with sensor" do
+    s = Space.new()
+    c = Circle.new(s.static_body, 10)
+    c.sensor = true
+    s.add c
+    hits = s.segment_query(v(-20, 0), v(20, 0), 1, ShapeFilter.new())
+    assert hits.size == 1
+  end
+
   test "segment_query_first" do
     s = Space.new()
 
@@ -382,6 +426,15 @@ describe Space do
     assert hit.alpha.close? 0.0208333333333
 
     hit = s.segment_query_first(v(-13, 50), v(131, 50))
+    assert hit == nil
+  end
+
+  test "segment_query_first with sensor" do
+    s = Space.new()
+    c = Circle.new(s.static_body, 10)
+    c.sensor = true
+    s.add c
+    hit = s.segment_query_first(v(-20, 0), v(20, 0), 1, ShapeFilter.new())
     assert hit == nil
   end
 
@@ -510,10 +563,12 @@ class AddRemoveHandler < CollisionHandler
   def pre_solve(arbiter, space)
     if !@b.space
       space.add @b, @c
+      space.add @c, @b
       assert !(space.bodies.includes? @b)
       assert !(space.shapes.includes? @c)
     else
       space.remove @b, @c
+      space.remove @c, @b
       assert space.bodies.includes? @b
       assert space.shapes.includes? @c
     end
