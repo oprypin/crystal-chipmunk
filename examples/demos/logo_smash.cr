@@ -38,7 +38,7 @@ class LogoSmash < Demo
     # Generally you will never need to do this.
     space.use_spatial_hash(2.0, 10000)
 
-    image = read_pbm("resources/chipmunk_logo.pbm")
+    image = read_pbm("../examples/resources/chipmunk_logo.pbm")
     height = image.size
     width = image[0].size
 

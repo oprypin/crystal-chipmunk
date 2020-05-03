@@ -19,14 +19,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require "chipmunk/chipmunk_crsfml.cr"
+require "chipmunk/chipmunk_crsfml"
 
 
 class Demo
   TITLE = "crystal-chipmunk"
   SIM_FPS = 60
 
-  FONT = SF::Font.from_file("resources/font/Cantarell-Regular.otf")
+  FONT = SF::Font.from_file("../examples/resources/font/Cantarell-Regular.otf")
 
   GRABBABLE_MASK = CP::ShapeFilter::Bitmask.new(1u32 << 31)
   GRAB_FILTER = CP::ShapeFilter.new(CP::ShapeFilter::NO_GROUP, GRABBABLE_MASK, GRABBABLE_MASK)

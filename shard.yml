@@ -13,6 +13,17 @@ development_dependencies:
     branch: master
   crsfml:
     github: oprypin/crsfml
+  chipmunk:
+    path: .
+
+targets:
+  hello:
+    main: examples/hello.cr
+  hello_sfml:
+    main: examples/hello_sfml.cr
+  demos:
+    main: examples/demos.cr
+
 
 license: MIT
 

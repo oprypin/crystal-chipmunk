@@ -1,7 +1,7 @@
 require "./demo/run"
 require "./demos/*"
 
-FONT = SF::Font.from_file("resources/font/Cantarell-Regular.otf")
+FONT = SF::Font.from_file("../examples/resources/font/Cantarell-Regular.otf")
 
 window = SF::RenderWindow.new(
   SF::VideoMode.new(990, 750), "",
