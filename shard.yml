@@ -13,6 +13,7 @@ development_dependencies:
     branch: master
   crsfml:
     github: oprypin/crsfml
+    version: ~> 2.5.1
   chipmunk:
     path: .
 

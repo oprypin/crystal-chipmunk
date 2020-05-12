@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+    branches: [master]
+  schedule:
+    - cron: '0 6 * * 6'
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - crystal: nightly
+            os: ubuntu-latest
+          - crystal: latest
+            os: macos-latest
+    runs-on: ${{matrix.os}}
+    steps:
+      - name: Download source
+        uses: actions/checkout@v2
+      - name: Install packages
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get -q update
+          sudo apt-get -qy --no-install-recommends --no-upgrade install cmake libflac-dev libfreetype6-dev libgl1-mesa-dev libopenal-dev libudev-dev libvorbis-dev libx11-dev libxrandr-dev
+      - name: Install Crystal
+        uses: oprypin/install-crystal@v1
+        with:
+          crystal: ${{matrix.crystal}}
+      - name: Cache SFML
+        id: cache-sfml
+        uses: actions/cache@v1
+        with:
+          path: sfml
+          key: sfml-2.5.1-${{runner.os}}
+      - name: Download SFML source
+        if: steps.cache-sfml.outputs.cache-hit != 'true'
+        uses: actions/checkout@v2
+        with:
+          repository: SFML/SFML
+          ref: 2.5.1
+          path: sfml
+      - name: Build SFML
+        if: steps.cache-sfml.outputs.cache-hit != 'true'
+        working-directory: sfml
+        run: |
+          cmake . -DCMAKE_BUILD_TYPE=Release
+          cmake --build .
+      - name: Install SFML
+        working-directory: sfml
+        run: |
+          sudo make install
+      - name: Get version of Chipmunk
+        id: chipmunk
+        uses: oprypin/find-latest-tag@v1
+        with:
+          repository: slembcke/Chipmunk2D
+          prefix: 'Chipmunk-'
+      - name: Cache Chipmunk
+        id: cache-chipmunk
+        uses: actions/cache@v1
+        with:
+          path: chipmunk
+          key: chipmunk-${{steps.chipmunk.outputs.tag}}-${{runner.os}}
+      - name: Download Chipmunk source
+        if: steps.cache-chipmunk.outputs.cache-hit != 'true'
+        uses: actions/checkout@v2
+        with:
+          repository: slembcke/Chipmunk2D
+          ref: ${{steps.chipmunk.outputs.tag}}
+          path: chipmunk
+      - name: Build Chipmunk
+        if: steps.cache-chipmunk.outputs.cache-hit != 'true'
+        working-directory: chipmunk
+        run: |
+          cmake . -DBUILD_DEMOS=OFF -DCMAKE_BUILD_TYPE=Release
+          cmake --build .
+      - name: Install Chipmunk
+        working-directory: chipmunk
+        run: |
+          sudo make install
+      - name: Set up environment
+        run: |
+          echo "::set-env name=LD_LIBRARY_PATH::/usr/local/lib"
+          echo "::set-env name=SFML_INCLUDE_DIR::/usr/local/include"
+      - name: Install shards
+        run: |
+          shards install
+      - name: Run tests
+        run: |
+          crystal spec
+      - name: Build examples
+        run: |
+          shards build
+      - name: Run example
+        run: |
+          bin/hello
