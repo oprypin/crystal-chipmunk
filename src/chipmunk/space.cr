@@ -153,12 +153,12 @@ module CP
       LibCP.space_set_collision_persistence(self, collision_persistence)
     end
 
-    @static_body = Body.new_static
+    @static_body : Body?
     # The `Space` provided static body for a given `Space`.
     #
     # This is merely provided for convenience and you are not required to use it.
     def static_body : Body
-      @static_body
+      @static_body ||= add Body.new_static
     end
 
     # Returns the current (or most recent) time step used with the given space.
