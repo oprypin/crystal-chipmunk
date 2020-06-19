@@ -26,6 +26,8 @@ module CP
   class Space
     alias Timestamp = UInt32
 
+    @space : LibCP::Space*
+
     def initialize(*, threaded : Bool = true)
       @threaded = threaded
       @bodies = Set(Body).new
@@ -34,8 +36,16 @@ module CP
       @in_step = false
       @todo = {} of (Body | Shape | Constraint) => Bool
       @collision_handlers = Set(CollisionHandler).new
-      @space = @threaded ? LibCP.hasty_space_new : LibCP.space_new
+      @space = threaded? LibCP.hasty_space_new, LibCP.space_new
       LibCP.space_set_user_data(self, self.as(Void*))
+    end
+
+    private macro threaded?(yes, no)
+      {% if flag?(:win32) %}
+        {{no}}
+      {% else %}
+        @threaded ? {{yes}} : {{no}}
+      {% end %}
     end
 
     # :nodoc:
@@ -352,7 +362,7 @@ module CP
     # Step the space forward in time by *dt* seconds.
     def step(dt : Number)
       @in_step = true
-      @threaded ? LibCP.hasty_space_step(self, dt) : LibCP.space_step(self, dt)
+      threaded? LibCP.hasty_space_step(self, dt), LibCP.space_step(self, dt)
       @in_step = false
 
       @todo.each do |item, add|
@@ -367,14 +377,12 @@ module CP
 
     # Set number of threads for multithreaded physics solver
     def threads=(nthreads : Int)
-      return unless @threaded
-      LibCP.hasty_space_set_threads(self, nthreads)
+      threaded? LibCP.hasty_space_set_threads(self, nthreads), nil
     end
 
     # Returns number of threads for multithreaded physics solver or 0 if the space isn't hasty
     def threads : Int
-      return 0 unless @threaded
-      LibCP.hasty_space_get_threads(self)
+      threaded? LibCP.hasty_space_get_threads(self), 0
     end
   end
 end
