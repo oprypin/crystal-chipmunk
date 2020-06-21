@@ -165,7 +165,7 @@ describe Shape do
     c = Circle.new(b1, 1)
     assert c.space == nil
     s = Space.new()
-    s.add c
+    s.add b1, c
     assert c.space == s
 
   end

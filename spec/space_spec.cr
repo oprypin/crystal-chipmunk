@@ -89,7 +89,7 @@ describe Space do
     assert s.bodies.empty?
     assert s.shapes.empty?
 
-    s.add c2, b
+    s.add b, c2
     assert s.bodies.to_a == [b]
     assert s.shapes.to_a == [c2]
   end
@@ -132,7 +132,7 @@ describe Space do
 
   test "point_query_nearest with shape filter" do
     s = Space.new()
-    b1 = Body.new(1, 1)
+    b1 = s.add Body.new(1, 1)
     s1 = s.add Circle.new(b1, 10)
 
     [
@@ -161,11 +161,11 @@ describe Space do
 
   test "point_query" do
     s = Space.new()
-    b1 = Body.new(1, 1)
+    b1 = s.add Body.new(1, 1)
     b1.position = v(19, 0)
     s1 = s.add Circle.new(b1, 10)
 
-    b2 = Body.new(1, 1)
+    b2 = s.add Body.new(1, 1)
     b2.position = v(0, 0)
     s2 = s.add Circle.new(b2, 10)
     s1.filter = ShapeFilter.new(categories: 0b10, mask: 0b01)
@@ -204,10 +204,9 @@ describe Space do
 
   test "point_query_nearest" do
     s = Space.new()
-    b1 = Body.new(1, 1)
+    b1 = s.add Body.new(1, 1)
     b1.position = v(19, 0)
-    s1 = Circle.new(b1, 10)
-    s.add s1
+    s1 = s.add Circle.new(b1, 10)
 
     hit = s.point_query_nearest(v(23, 0))
     assert hit
@@ -239,11 +238,11 @@ describe Space do
   test "bb_query" do
     s = Space.new()
 
-    b1 = Body.new(1, 1)
+    b1 = s.add Body.new(1, 1)
     b1.position = v(19, 0)
     s1 = s.add Circle.new(b1, 10)
 
-    b2 = Body.new(1, 1)
+    b2 = s.add Body.new(1, 1)
     b2.position = v(0, 0)
     s2 = s.add Circle.new(b2, 10)
 
@@ -288,7 +287,7 @@ describe Space do
   test "static point queries" do
     s = TestSpace.new()
 
-    b = Body.new_kinematic()
+    b = s.add Body.new_kinematic()
     b.position = v(-50, -50)
     c = s.add Circle.new(b, 10)
 
@@ -302,7 +301,7 @@ describe Space do
   test "reindex shape" do
     s = Space.new()
 
-    b = Body.new_kinematic()
+    b = s.add Body.new_kinematic()
     c = s.add Circle.new(b, 10)
 
     b.position = v(-50, -50)
@@ -316,7 +315,7 @@ describe Space do
 
   test "reindex_shapes_for body" do
     s = Space.new()
-    b = Body.new_static()
+    b = s.add Body.new_static()
     c = s.add Circle.new(b, 10)
 
     b.position = v(-50, -50)
@@ -330,7 +329,7 @@ describe Space do
 
   test "reindex_static" do
     s = Space.new()
-    b = Body.new_static()
+    b = s.add Body.new_static()
     c = s.add Circle.new(b, 10)
 
     b.position = v(-50, -50)
@@ -347,7 +346,7 @@ describe Space do
     b1.position = v(20, 20)
     c1 = s.add Circle.new(b1, 10)
 
-    b2 = Body.new_static()
+    b2 = s.add Body.new_static()
     s2 = s.add Segment.new(b2, v(-10, 0), v(10, 0), 1)
 
     s2.set_endpoints(v(-10, 0), v(100, 0))
@@ -373,11 +372,11 @@ describe Space do
   test "segment_query" do
     s = Space.new()
 
-    b1 = Body.new(1, 1)
+    b1 = s.add Body.new(1, 1)
     b1.position = v(19, 0)
     s1 = s.add Circle.new(b1, 10)
 
-    b2 = Body.new(1, 1)
+    b2 = s.add Body.new(1, 1)
     b2.position = v(0, 0)
     s2 = s.add Circle.new(b2, 10)
 
@@ -410,11 +409,11 @@ describe Space do
   test "segment_query_first" do
     s = Space.new()
 
-    b1 = Body.new(1, 1)
+    b1 = s.add Body.new(1, 1)
     b1.position = v(19, 0)
     s1 = s.add Circle.new(b1, 10)
 
-    b2 = Body.new(1, 1)
+    b2 = s.add Body.new(1, 1)
     b2.position = v(0, 0)
     s2 = s.add Circle.new(b2, 10)
 
@@ -441,7 +440,7 @@ describe Space do
   test "static segment queries" do
     s = TestSpace.new()
 
-    b = Body.new_kinematic()
+    b = s.add Body.new_kinematic()
     b.position = v(-50, -50)
     c = s.add Circle.new(b, 10)
 
