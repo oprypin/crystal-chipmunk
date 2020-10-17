@@ -118,10 +118,10 @@ class SFMLDebugDraw < CP::Space::DebugDraw
       update()
     end
 
-    def point_count
+    def point_count : Int32
       @result.size
     end
-    def get_point(index)
+    def get_point(index : Int) : SF::Vector2f
       @result[index]
     end
   end
