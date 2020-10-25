@@ -84,8 +84,8 @@ jobs:
           sudo make install
       - name: Set up environment
         run: |
-          echo "::set-env name=LD_LIBRARY_PATH::/usr/local/lib"
-          echo "::set-env name=SFML_INCLUDE_DIR::/usr/local/include"
+          echo "LD_LIBRARY_PATH=/usr/local/lib" >>$GITHUB_ENV
+          echo "SFML_INCLUDE_DIR=/usr/local/include" >>$GITHUB_ENV
       - name: Install shards
         run: |
           shards install
