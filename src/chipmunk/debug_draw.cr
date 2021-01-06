@@ -24,7 +24,7 @@ module CP
   class Space
     abstract class DebugDraw
       # Outline color passed to the drawing function.
-      SHAPE_OUTLINE_COLOR = Color.new(*{200, 210, 230}.map(&./ 255.0)) #/
+      SHAPE_OUTLINE_COLOR = Color.new(*{200, 210, 230}.map(&./ 255.0))
       # Color passed to drawing functions for constraints.
       CONSTRAINT_COLOR = Color.new(0.0, 0.75, 0.0)
       # Color passed to drawing functions for collision points.

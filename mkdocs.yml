@@ -1,0 +1,36 @@
+site_name: crystal-chipmunk
+site_url: "https://oprypin.github.io/crystal-chipmunk"
+repo_url: "https://github.com/oprypin/crystal-chipmunk"
+edit_uri: blob/master/docs/
+use_directory_urls: false
+
+theme:
+  name: material
+  icon:
+    repo: fontawesome/brands/github
+  palette:
+    primary: teal
+    accent: light blue
+
+extra_css:
+  - css/mkdocstrings.css
+
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.magiclink
+  - pymdownx.saneheaders
+  - pymdownx.superfences
+  - deduplicate-toc
+  - toc:
+      permalink: "#"
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: crystal
+      watch: [src]
+      handlers:
+        crystal:
+          selection:
+            nested_types: true
+  - literate-nav
