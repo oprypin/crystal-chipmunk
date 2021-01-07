@@ -1,28 +1,20 @@
-/* https://pawamoy.github.io/mkdocstrings/handlers/python/#recommended-style-material */
-
+/* Indentation of sub-items */
 div.doc-contents:not(.first) {
   padding-left: 15px;
   border-left: 4px solid rgba(230, 230, 230);
 }
 
+/* Don't capitalize names */
 h5.doc-heading {
   text-transform: none !important;
 }
 
-.hidden-toc::before {
-  margin-top: 0 !important;
-  padding-top: 0 !important;
+/* [View source] links */
+a.doc-source-link::before {
+  content: "[";
+  color: var(--md-typeset-color);
 }
-
-.hidden-toc a.headerlink {
-  display: none;
-}
-
-td code {
-  word-break: normal !important;
-}
-
-td p {
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
+a.doc-source-link::after {
+  content: "]";
+  color: var(--md-typeset-color);
 }
