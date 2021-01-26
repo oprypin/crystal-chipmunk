@@ -48,11 +48,14 @@ jobs:
           repository: slembcke/Chipmunk2D
           ref: ${{steps.chipmunk.outputs.tag}}
           path: chipmunk
+      - name: Configure Chipmunk
+        working-directory: chipmunk
+        run: |
+          cmake . -DBUILD_DEMOS=OFF -DCMAKE_BUILD_TYPE=Release
       - name: Build Chipmunk
         if: steps.cache-chipmunk.outputs.cache-hit != 'true'
         working-directory: chipmunk
         run: |
-          cmake . -DBUILD_DEMOS=OFF -DCMAKE_BUILD_TYPE=Release
           cmake --build . -j4
       - name: Install Chipmunk
         working-directory: chipmunk
