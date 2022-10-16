@@ -20,7 +20,7 @@ jobs:
     runs-on: ${{matrix.os}}
     steps:
       - name: Download source
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Install Crystal
         uses: oprypin/install-crystal@v1
         with:
@@ -37,13 +37,13 @@ jobs:
           prefix: 'Chipmunk-'
       - name: Cache Chipmunk
         id: cache-chipmunk
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: chipmunk
           key: chipmunk-${{steps.chipmunk.outputs.tag}}-${{runner.os}}
       - name: Download Chipmunk source
         if: steps.cache-chipmunk.outputs.cache-hit != 'true'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: slembcke/Chipmunk2D
           ref: ${{steps.chipmunk.outputs.tag}}
