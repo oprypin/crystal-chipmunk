@@ -29,24 +29,18 @@ jobs:
         uses: oprypin/install-sfml@v1
         with:
           sfml: '2.5.1'
-      - name: Get version of Chipmunk
-        id: chipmunk
-        uses: oprypin/find-latest-tag@v1
-        with:
-          repository: slembcke/Chipmunk2D
-          prefix: 'Chipmunk-'
       - name: Cache Chipmunk
         id: cache-chipmunk
         uses: actions/cache@v3
         with:
           path: chipmunk
-          key: chipmunk-${{steps.chipmunk.outputs.tag}}-${{runner.os}}
+          key: chipmunk-9a051e6fb970c7afe09ce2d564c163b81df050a8-${{runner.os}}
       - name: Download Chipmunk source
         if: steps.cache-chipmunk.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
         with:
           repository: slembcke/Chipmunk2D
-          ref: ${{steps.chipmunk.outputs.tag}}
+          ref: 9a051e6fb970c7afe09ce2d564c163b81df050a8
           path: chipmunk
       - name: Configure Chipmunk
         working-directory: chipmunk
