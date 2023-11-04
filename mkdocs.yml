@@ -6,6 +6,8 @@ use_directory_urls: false
 
 theme:
   name: material
+  features:
+    - content.action.edit
   icon:
     repo: fontawesome/brands/github
   palette:
@@ -14,6 +16,9 @@ theme:
 
 extra_css:
   - css/mkdocstrings.css
+
+watch:
+  - src
 
 markdown_extensions:
   - pymdownx.highlight
@@ -28,9 +33,13 @@ plugins:
   - search
   - mkdocstrings:
       default_handler: crystal
-      watch: [src]
       handlers:
         crystal:
           selection:
             nested_types: true
   - literate-nav
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
