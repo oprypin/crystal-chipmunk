@@ -1,5 +1,0 @@
-mkdocs>=1.5
-mkdocs-literate-nav>=0.3.1
-mkdocs-material>=7.1.4
-mkdocstrings-crystal>=0.3.1
-pymdown-extensions>=8.2
