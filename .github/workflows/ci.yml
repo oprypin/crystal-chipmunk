@@ -9,6 +9,8 @@ on:
 
 jobs:
   build:
+    env:
+      CRYSTAL_OPTS: '--link-flags=-Wl,-ld_classic'
     strategy:
       fail-fast: false
       matrix:
