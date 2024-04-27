@@ -16,7 +16,7 @@ jobs:
           - crystal: nightly
             os: ubuntu-latest
           - crystal: latest
-            os: macos-latest
+            os: macos-13
     runs-on: ${{matrix.os}}
     steps:
       - name: Download source
@@ -31,10 +31,10 @@ jobs:
           sfml: '2.5.1'
       - name: Cache Chipmunk
         id: cache-chipmunk
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: chipmunk
-          key: chipmunk-9a051e6fb970c7afe09ce2d564c163b81df050a8-${{runner.os}}
+          key: chipmunk-9a051e6fb970c7afe09ce2d564c163b81df050a8-${{runner.os}}-${{runner.arch}}
       - name: Download Chipmunk source
         if: steps.cache-chipmunk.outputs.cache-hit != 'true'
         uses: actions/checkout@v4

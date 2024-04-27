@@ -642,7 +642,7 @@ end
 private macro def_draw(call)
   def draw_{{call}}
     {% args = call.args.map { |arg| "#{arg}: \#{ #{arg} }".id } %}
-    @calls << "draw_{{call.name}}({{*args}})"
+    @calls << "draw_{{call.name}}({{args.splat}})"
   end
 end
 

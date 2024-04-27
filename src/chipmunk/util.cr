@@ -50,9 +50,9 @@ macro _cp_gather(name, f)
 
   {{f}}
 
-  def {% if f.receiver %}{{f.receiver}}.{% end %}{{name}}({{*f.args}}) : Array({{typ}})
+  def {% if f.receiver %}{{f.receiver}}.{% end %}{{name}}({{f.args.splat}}) : Array({{typ}})
     result = [] of {{typ}}
-    {{f.name}}({{*f.args.map &.internal_name}}) do |item|
+    {{f.name}}({{f.args.map(&.internal_name).splat}}) do |item|
       result << item
     end
     result
