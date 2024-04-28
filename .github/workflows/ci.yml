@@ -11,6 +11,7 @@ jobs:
   build:
     env:
       LDFLAGS: '-Wl,-ld_classic'
+      CRYSTAL_OPTS: '--link-flags=-Wl,-ld_classic'
     strategy:
       fail-fast: false
       matrix:
