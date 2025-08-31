@@ -105,7 +105,7 @@ module CP
   # colliding against other parts of itself.
   #
   # Category masks allow you to mark which categories an object belongs to
-  # and which categories it collidies with. By default, objects exist in
+  # and which categories it collides with. By default, objects exist in
   # every category and collide with every category.
   #
   # The type of categories and mask in `ShapeFilter` is `UInt32`.
