@@ -127,7 +127,7 @@ end
 
 class ContactPointSetCollisionHandler < CollisionHandler
   def pre_solve(arb, space)
-    # check inital values
+    # check initial values
     ps = arb.contact_point_set
     assert ps.points.size == 1
     assert ps.normal.x.close? 0.8574929257

@@ -96,7 +96,7 @@ class Sticky < Demo
         anchor_b = body_b.world_to_local(contacts.points[0].point_b)
         joint = CP::PivotJoint.new(body_a, body_b, anchor_a, anchor_b)
 
-        # Give it a finite force for the stickyness.
+        # Give it a finite force for the stickiness.
         joint.max_force = 3000
 
         space.add joint
@@ -106,7 +106,7 @@ class Sticky < Demo
       end
 
       # Position correction and velocity are handled separately so changing
-      # the overlap distance alone won't prevent the collision from occuring.
+      # the overlap distance alone won't prevent the collision from occurring.
       # Explicitly the collision for this frame if the shapes don't overlap using the new distance.
       deepest <= 0
 

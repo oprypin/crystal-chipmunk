@@ -87,7 +87,7 @@ module CP
     # and leave the mass of the shapes added to it as 0.0. This approach is
     # more flexible, but is not as easy to use. Don't set the mass of both
     # the body and the shapes. If you do so, it will recalculate and
-    # overwite your custom mass value when the shapes are added to the body.
+    # overwrite your custom mass value when the shapes are added to the body.
     def initialize(mass : Number = 0, moment : Number = 0)
       @body = uninitialized LibCP::Body
       LibCP.body_init(self, mass, moment)
@@ -163,7 +163,7 @@ module CP
     #
     # When changing a body to a dynamic body, the mass and moment of
     # inertia are recalculated from the shapes added to the body. Custom
-    # calculated moments of inertia are not preseved when changing types.
+    # calculated moments of inertia are not preserved when changing types.
     # This function cannot be called directly in a collision callback.
     def type : Type
       LibCP.body_get_type(self)
